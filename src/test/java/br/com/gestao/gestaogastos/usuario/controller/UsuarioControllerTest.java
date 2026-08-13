@@ -3,6 +3,7 @@ package br.com.gestao.gestaogastos.usuario.controller;
 import br.com.gestao.gestaogastos.common.enums.TipoUsuario;
 import br.com.gestao.gestaogastos.usuario.application.CriarUsuarioUseCase;
 import br.com.gestao.gestaogastos.usuario.application.EditarUsuarioUseCase;
+import br.com.gestao.gestaogastos.usuario.application.RemoverUsuarioUseCase; // Importado o novo UseCase
 import br.com.gestao.gestaogastos.usuario.dto.UsuarioResponseDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete; // Importado para testar o delete
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UsuarioController.class)
@@ -28,6 +30,9 @@ class UsuarioControllerTest {
 
     @MockitoBean
     private EditarUsuarioUseCase editarUsuarioUseCase;
+
+    @MockitoBean
+    private RemoverUsuarioUseCase removerUsuarioUseCase;
 
     @Test
     void deveCriarUsuarioComSucesso() throws Exception {
@@ -96,5 +101,23 @@ class UsuarioControllerTest {
                                 .content(json)
                 )
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void deveRemoverUsuarioComSucesso() throws Exception {
+        String json = """
+                {
+                    "id": 1,
+                    "nome": "Administrador",
+                    "tipoUsuario": "ADMIN"
+                }
+                """;
+
+        mockMvc.perform(
+                        delete("/api/usuario/1/remover")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json)
+                )
+                .andExpect(status().isNoContent());
     }
 }

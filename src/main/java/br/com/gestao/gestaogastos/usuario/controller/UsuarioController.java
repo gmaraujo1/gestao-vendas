@@ -2,6 +2,8 @@ package br.com.gestao.gestaogastos.usuario.controller;
 
 import br.com.gestao.gestaogastos.usuario.application.CriarUsuarioUseCase;
 import br.com.gestao.gestaogastos.usuario.application.EditarUsuarioUseCase;
+import br.com.gestao.gestaogastos.usuario.application.RemoverUsuarioUseCase;
+import br.com.gestao.gestaogastos.usuario.dto.UsuarioDeleteDTO;
 import br.com.gestao.gestaogastos.usuario.dto.UsuarioRequestDTO;
 import br.com.gestao.gestaogastos.usuario.dto.UsuarioRequestEditDTO;
 import br.com.gestao.gestaogastos.usuario.dto.UsuarioResponseDTO;
@@ -17,8 +19,8 @@ import org.springframework.web.bind.annotation.*;
 public class UsuarioController {
     private final CriarUsuarioUseCase criarUsuarioUseCase;
     private final EditarUsuarioUseCase editarUsuarioUseCase;
+    private final RemoverUsuarioUseCase removerUsuarioUseCase;
 
-    // endpoint para criacao de novo usuário
     @PostMapping("/criar")
     public ResponseEntity<UsuarioResponseDTO> criarNovoUsuario(@Valid @RequestBody UsuarioRequestDTO dto) {
         UsuarioResponseDTO resposta = criarUsuarioUseCase.criar(dto);
@@ -34,4 +36,9 @@ public class UsuarioController {
 
     }
 
+    @DeleteMapping("/{id}/remover")
+    public ResponseEntity<Void> deletarUsuario(@PathVariable Long id, @Valid @RequestBody UsuarioDeleteDTO dto) {
+        removerUsuarioUseCase.deletar(id, dto);
+        return ResponseEntity.noContent().build();
+    }
 }

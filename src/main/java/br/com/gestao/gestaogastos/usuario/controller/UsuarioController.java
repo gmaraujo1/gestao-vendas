@@ -2,6 +2,7 @@ package br.com.gestao.gestaogastos.usuario.controller;
 
 import br.com.gestao.gestaogastos.usuario.application.CriarUsuarioUseCase;
 import br.com.gestao.gestaogastos.usuario.application.EditarUsuarioUseCase;
+import br.com.gestao.gestaogastos.usuario.application.ListarUsuarioUseCase;
 import br.com.gestao.gestaogastos.usuario.application.RemoverUsuarioUseCase;
 import br.com.gestao.gestaogastos.usuario.dto.UsuarioDeleteDTO;
 import br.com.gestao.gestaogastos.usuario.dto.UsuarioRequestDTO;
@@ -13,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/usuario")
@@ -20,6 +23,13 @@ public class UsuarioController {
     private final CriarUsuarioUseCase criarUsuarioUseCase;
     private final EditarUsuarioUseCase editarUsuarioUseCase;
     private final RemoverUsuarioUseCase removerUsuarioUseCase;
+    private final ListarUsuarioUseCase listarUsuarioUseCase;
+
+    @GetMapping("/listar")
+    public ResponseEntity<List<UsuarioResponseDTO>> listarUsuarios() {
+        List<UsuarioResponseDTO> usuarios = listarUsuarioUseCase.listar();
+        return ResponseEntity.status(HttpStatus.OK).body(usuarios);
+    }
 
     @PostMapping("/criar")
     public ResponseEntity<UsuarioResponseDTO> criarNovoUsuario(@Valid @RequestBody UsuarioRequestDTO dto) {

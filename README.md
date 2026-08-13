@@ -164,9 +164,9 @@ Principais atributos:
 ### Versão Inicial (MVP)
 
 * [x] Documentação do projeto
-* [ ] Modelagem do banco de dados
-* [ ] Protótipo das telas
-* [ ] Cadastro de produtos
+* [x] Modelagem do banco de dados
+* [x] Protótipo das telas
+* [x] Cadastro de produtos
 * [ ] Cadastro de compras
 * [ ] Controle de estoque
 * [ ] Dashboard inicial

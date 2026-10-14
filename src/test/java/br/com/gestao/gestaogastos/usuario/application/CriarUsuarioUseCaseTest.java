@@ -2,6 +2,7 @@ package br.com.gestao.gestaogastos.usuario.application;
 
 import br.com.gestao.gestaogastos.common.enums.TipoUsuario;
 import br.com.gestao.gestaogastos.usuario.domain.Usuario;
+import br.com.gestao.gestaogastos.usuario.domain.UsuarioValidator;
 import br.com.gestao.gestaogastos.usuario.dto.UsuarioRequestDTO;
 import br.com.gestao.gestaogastos.usuario.dto.UsuarioResponseDTO;
 import br.com.gestao.gestaogastos.usuario.mapper.UsuarioMapper;
@@ -23,6 +24,9 @@ class CriarUsuarioUseCaseTest {
 
     @Mock
     private UsuarioRepository usuarioRepository;
+
+    @Mock
+    private UsuarioValidator usuarioValidator;
 
     @Mock
     private UsuarioMapper usuarioMapper;
@@ -70,6 +74,8 @@ class CriarUsuarioUseCaseTest {
         assertNotNull(usuario.getCriadoEm());
         assertNotNull(usuario.getAtualizadoEm());
 
+        verify(usuarioValidator).validaNomeUsuario(request.getNome());
+        verify(usuarioValidator).validaEmailUsuario(request.getEmail());
         verify(usuarioMapper).toEntity(request);
         verify(usuarioRepository).save(usuario);
         verify(usuarioMapper).toResponse(usuario);

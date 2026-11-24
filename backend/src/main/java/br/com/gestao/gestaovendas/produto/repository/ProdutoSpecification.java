@@ -4,6 +4,7 @@ import br.com.gestao.gestaovendas.produto.domain.Produto;
 import br.com.gestao.gestaovendas.produto.dto.ProdutoFiltroDTO;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -28,7 +29,7 @@ public class ProdutoSpecification {
         return (root, query, cb) -> cb.like(cb.lower(root.get("descricao")), termo);
     }
 
-    private static Specification<Produto> precoEntre(Double min, Double max) {
+    private static Specification<Produto> precoEntre(BigDecimal min, BigDecimal max) {
         if (min == null && max == null) {
             return null;
         }

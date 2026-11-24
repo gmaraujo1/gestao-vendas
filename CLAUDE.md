@@ -20,6 +20,7 @@ mobile/     React Native, só depois que o frontend e o backend estiverem pronto
 ```bash
 cd backend && ./mvnw test   # testes (o CI roda o mesmo em PRs para main)
 ```
+Postgres local: `cd backend && docker compose up -d` (usuário/senha padrão `gestao`; exporte `DB_USERNAME` e `DB_PASSWORD`).
 Nesta máquina o JDK 21 do sistema não tem `javac`. Use
 `JAVA_HOME=~/.jdks/corretto-22.0.2 ./mvnw test` (ou instale o `openjdk-21-jdk`).
 
@@ -42,11 +43,11 @@ Nesta máquina o JDK 21 do sistema não tem `javac`. Use
 
 ## Decisões técnicas
 
-- Dinheiro sempre em `BigDecimal` (o `Produto.precoMedio` atual ainda está em `Double`; corrigir).
-- Migrations com Flyway (o `ddl-auto: validate` atual exige tabelas criadas à mão).
+- Dinheiro sempre em `BigDecimal` (`NUMERIC` no banco; custo médio com 4 casas).
+- Migrations com Flyway em `backend/src/main/resources/db/migration` (`V<n>__descricao.sql`). Nunca editar uma migration já mergeada; criar outra. O Hibernate só valida (`ddl-auto: validate`).
 - Login com Spring Security + JWT. OpenAPI (springdoc) para gerar o cliente TS do front e do mobile.
 - PDF gerado no backend, para que o mobile reaproveite.
-- Testcontainers para testes de integração com Postgres.
+- Testcontainers para testes de integração com Postgres: anotar a classe com `@IntegrationTest` e nomeá-la `*IntegrationTest` (o surefire só roda `*Test`). Requer Docker. O `testcontainers.version` está fixado em 1.21.4 por causa do Docker 29.
 - Padrão atual por módulo: `domain/`, `application/` (um use case por ação), `controller/`, `repository/`, `dto/`, `mapper/`.
 - Pacote base `br.com.gestao.gestaovendas`, artefato `gestao-vendas`, banco `gestao_vendas`.
 

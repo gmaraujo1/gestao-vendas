@@ -1,0 +1,15 @@
+# Postgres local para desenvolvimento: docker compose up -d
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: gestao_vendas
+      POSTGRES_USER: ${DB_USERNAME:-gestao}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-gestao}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

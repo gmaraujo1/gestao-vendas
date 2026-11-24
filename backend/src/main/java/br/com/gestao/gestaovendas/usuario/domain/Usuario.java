@@ -34,7 +34,7 @@ public class Usuario {
     private String senha;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "tipo", length = 255)
+    @Column(name = "tipo", nullable = false, length = 20)
     private TipoUsuario tipoUsuario;
 
     @CreatedDate

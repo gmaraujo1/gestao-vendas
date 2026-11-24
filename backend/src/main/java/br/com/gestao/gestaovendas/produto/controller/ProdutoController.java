@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -37,8 +38,8 @@ public class ProdutoController {
     @GetMapping
     public ResponseEntity<List<ProdutoResponseDTO>> listarProdutos(
             @RequestParam(required = false) String descricao,
-            @RequestParam(required = false) Double precoMinimo,
-            @RequestParam(required = false) Double precoMaximo,
+            @RequestParam(required = false) BigDecimal precoMinimo,
+            @RequestParam(required = false) BigDecimal precoMaximo,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate atualizadoDe,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate atualizadoAte,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate criadoDe,

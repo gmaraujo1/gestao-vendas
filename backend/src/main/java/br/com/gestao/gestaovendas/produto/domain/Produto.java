@@ -10,6 +10,7 @@ import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -37,8 +38,8 @@ public class Produto {
     @Column(name = "unidade", nullable = false, length = 6)
     private UnidadeMedida unidadeMedida;
 
-    @Column(name = "preco_medio", nullable = false)
-    private Double precoMedio;
+    @Column(name = "preco_medio", nullable = false, precision = 14, scale = 4)
+    private BigDecimal precoMedio;
 
     @Column(name = "observacao", length = 100)
     private String observacao;

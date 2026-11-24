@@ -19,3 +19,14 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+
+app:
+  jwt:
+    # Obrigatório: pelo menos 32 caracteres. Gere com: openssl rand -base64 48
+    secret: ${JWT_SECRET:}
+    expiracao: ${JWT_EXPIRACAO:12h}
+  # Cria o primeiro ADMIN na subida, só se não existir nenhum usuário.
+  admin-inicial:
+    nome: ${ADMIN_NOME:Administrador}
+    email: ${ADMIN_EMAIL:}
+    senha: ${ADMIN_SENHA:}

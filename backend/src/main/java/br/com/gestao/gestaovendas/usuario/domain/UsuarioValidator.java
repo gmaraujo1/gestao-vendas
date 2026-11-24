@@ -27,10 +27,8 @@ public class UsuarioValidator {
         }
     }
 
-    public void validaTipoUsuarioParaExclusao(TipoUsuario usuarioParaDeletar, TipoUsuario usuarioResponsavel) {
-        if (usuarioResponsavel != TipoUsuario.ADMIN) {
-            throw new AccessRecusedException("Apenas usuários do tipo ADMIN podem deletar outro usuário");
-        }
+    /** Só ADMIN chega aqui (ver SecurityConfig); mesmo assim, um ADMIN não remove outro. */
+    public void validaTipoUsuarioParaExclusao(TipoUsuario usuarioParaDeletar) {
         if (usuarioParaDeletar == TipoUsuario.ADMIN) {
             throw new AccessRecusedException("Não é possível remover um usuário do tipo ADMIN");
         }

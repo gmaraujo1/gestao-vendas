@@ -3,7 +3,6 @@ package br.com.gestao.gestaovendas.usuario.application;
 import br.com.gestao.gestaovendas.common.enums.TipoUsuario;
 import br.com.gestao.gestaovendas.usuario.domain.Usuario;
 import br.com.gestao.gestaovendas.usuario.domain.UsuarioValidator;
-import br.com.gestao.gestaovendas.usuario.dto.UsuarioDeleteDTO;
 import br.com.gestao.gestaovendas.usuario.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,14 +30,11 @@ class RemoverUsuarioUseCaseTest {
     private RemoverUsuarioUseCase removerUsuarioUseCase;
 
     private Usuario usuario;
-    private UsuarioDeleteDTO request;
 
     @BeforeEach
     void setUp() {
 
         usuario = new Usuario();
-
-        request = new UsuarioDeleteDTO();
     }
 
     @Test
@@ -46,21 +42,17 @@ class RemoverUsuarioUseCaseTest {
 
         Long id = 1L;
 
-        usuario.setTipoUsuario(TipoUsuario.CLIENTE);
-        request.setTipoUsuario(TipoUsuario.CLIENTE);
+        usuario.setTipoUsuario(TipoUsuario.FUNCIONARIO);
 
         when(usuarioRepository.findById(id))
                 .thenReturn(Optional.of(usuario));
 
-        removerUsuarioUseCase.deletar(id, request);
+        removerUsuarioUseCase.deletar(id);
 
         verify(usuarioRepository).findById(id);
 
         verify(usuarioValidator)
-                .validaTipoUsuarioParaExclusao(
-                        usuario.getTipoUsuario(),
-                        request.getTipoUsuario()
-                );
+                .validaTipoUsuarioParaExclusao(usuario.getTipoUsuario());
 
         verify(usuarioRepository).delete(usuario);
     }
@@ -75,7 +67,7 @@ class RemoverUsuarioUseCaseTest {
 
         RuntimeException exception = assertThrows(
                 RuntimeException.class,
-                () -> removerUsuarioUseCase.deletar(id, request)
+                () -> removerUsuarioUseCase.deletar(id)
         );
 
         assertEquals(
@@ -96,22 +88,18 @@ class RemoverUsuarioUseCaseTest {
 
         Long id = 1L;
 
-        usuario.setTipoUsuario(TipoUsuario.CLIENTE);
-        request.setTipoUsuario(TipoUsuario.ADMIN);
+        usuario.setTipoUsuario(TipoUsuario.FUNCIONARIO);
 
         when(usuarioRepository.findById(id))
                 .thenReturn(Optional.of(usuario));
 
         doThrow(new RuntimeException("Usuário não pode ser excluído"))
                 .when(usuarioValidator)
-                .validaTipoUsuarioParaExclusao(
-                        usuario.getTipoUsuario(),
-                        request.getTipoUsuario()
-                );
+                .validaTipoUsuarioParaExclusao(usuario.getTipoUsuario());
 
         RuntimeException exception = assertThrows(
                 RuntimeException.class,
-                () -> removerUsuarioUseCase.deletar(id, request)
+                () -> removerUsuarioUseCase.deletar(id)
         );
 
         assertEquals(
@@ -122,10 +110,7 @@ class RemoverUsuarioUseCaseTest {
         verify(usuarioRepository).findById(id);
 
         verify(usuarioValidator)
-                .validaTipoUsuarioParaExclusao(
-                        usuario.getTipoUsuario(),
-                        request.getTipoUsuario()
-                );
+                .validaTipoUsuarioParaExclusao(usuario.getTipoUsuario());
 
         verify(usuarioRepository, never())
                 .delete(any());

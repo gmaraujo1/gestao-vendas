@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
 
@@ -31,6 +32,9 @@ class CriarUsuarioUseCaseTest {
     @Mock
     private UsuarioMapper usuarioMapper;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private CriarUsuarioUseCase criarUsuarioUseCase;
 
@@ -45,7 +49,7 @@ class CriarUsuarioUseCaseTest {
                 "João da Silva",
                 "joao@email.com",
                 "123456",
-                TipoUsuario.CLIENTE
+                TipoUsuario.FUNCIONARIO
         );
 
         usuario = new Usuario();
@@ -55,6 +59,9 @@ class CriarUsuarioUseCaseTest {
 
     @Test
     void deveCriarUsuarioComSucesso() {
+
+        when(passwordEncoder.encode("123456"))
+                .thenReturn("hash-bcrypt");
 
         when(usuarioMapper.toEntity(request))
                 .thenReturn(usuario);
@@ -71,6 +78,7 @@ class CriarUsuarioUseCaseTest {
         assertNotNull(resultado);
         assertEquals(response, resultado);
 
+        assertEquals("hash-bcrypt", usuario.getSenha());
         assertNotNull(usuario.getCriadoEm());
         assertNotNull(usuario.getAtualizadoEm());
 

@@ -4,7 +4,6 @@ import br.com.gestao.gestaovendas.usuario.application.CriarUsuarioUseCase;
 import br.com.gestao.gestaovendas.usuario.application.EditarUsuarioUseCase;
 import br.com.gestao.gestaovendas.usuario.application.ListarUsuarioUseCase;
 import br.com.gestao.gestaovendas.usuario.application.RemoverUsuarioUseCase;
-import br.com.gestao.gestaovendas.usuario.dto.UsuarioDeleteDTO;
 import br.com.gestao.gestaovendas.usuario.dto.UsuarioRequestDTO;
 import br.com.gestao.gestaovendas.usuario.dto.UsuarioRequestEditDTO;
 import br.com.gestao.gestaovendas.usuario.dto.UsuarioResponseDTO;
@@ -47,8 +46,8 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}/remover")
-    public ResponseEntity<Void> deletarUsuario(@PathVariable Long id, @Valid @RequestBody UsuarioDeleteDTO dto) {
-        removerUsuarioUseCase.deletar(id, dto);
+    public ResponseEntity<Void> deletarUsuario(@PathVariable Long id) {
+        removerUsuarioUseCase.deletar(id);
         return ResponseEntity.noContent().build();
     }
 }

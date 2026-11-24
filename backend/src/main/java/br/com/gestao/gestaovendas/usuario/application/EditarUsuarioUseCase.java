@@ -1,5 +1,6 @@
 package br.com.gestao.gestaovendas.usuario.application;
 
+import br.com.gestao.gestaovendas.exception.ResourceNotFoundException;
 import br.com.gestao.gestaovendas.usuario.domain.Usuario;
 import br.com.gestao.gestaovendas.usuario.dto.UsuarioRequestEditDTO;
 import br.com.gestao.gestaovendas.usuario.dto.UsuarioResponseDTO;
@@ -21,7 +22,7 @@ public class EditarUsuarioUseCase {
     @Transactional
     public UsuarioResponseDTO atualizar(Long id, UsuarioRequestEditDTO request) {
 
-        Usuario usuario = usuarioRepository.findById(id).orElseThrow(() -> new RuntimeException("Não foi possível encontrar o usuário"));
+        Usuario usuario = usuarioRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Não foi possível encontrar o usuário"));
 
         usuarioMapper.updateEntity(usuario, request);
         usuario.setAtualizadoEm(LocalDateTime.now());

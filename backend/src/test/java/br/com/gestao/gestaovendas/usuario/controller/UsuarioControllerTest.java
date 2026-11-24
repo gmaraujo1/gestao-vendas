@@ -1,6 +1,7 @@
 package br.com.gestao.gestaovendas.usuario.controller;
 
 import br.com.gestao.gestaovendas.common.enums.TipoUsuario;
+import br.com.gestao.gestaovendas.config.SecurityConfig;
 import br.com.gestao.gestaovendas.usuario.application.CriarUsuarioUseCase;
 import br.com.gestao.gestaovendas.usuario.application.EditarUsuarioUseCase;
 import br.com.gestao.gestaovendas.usuario.application.ListarUsuarioUseCase;
@@ -9,7 +10,11 @@ import br.com.gestao.gestaovendas.usuario.dto.UsuarioResponseDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -17,13 +22,26 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UsuarioController.class)
+@Import(SecurityConfig.class)
+@ActiveProfiles("test")
 class UsuarioControllerTest {
+
+    private static RequestPostProcessor admin() {
+        return jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN"));
+    }
+
+    private static RequestPostProcessor funcionario() {
+        return jwt().authorities(new SimpleGrantedAuthority("ROLE_FUNCIONARIO"));
+    }
 
     @Autowired
     private MockMvc mockMvc;
@@ -50,15 +68,15 @@ class UsuarioControllerTest {
 
         String json = """
                 {
-                    "nome": "Jo達o da Silva",
+                    "nome": "João da Silva",
                     "email": "joao@email.com",
                     "senha": "123456",
-                    "tipoUsuario": "CLIENTE"
+                    "tipoUsuario": "FUNCIONARIO"
                 }
                 """;
 
         mockMvc.perform(
-                        post("/api/usuario/criar")
+                        post("/api/usuario/criar").with(admin())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
@@ -78,7 +96,7 @@ class UsuarioControllerTest {
                 """;
 
         mockMvc.perform(
-                        post("/api/usuario/criar")
+                        post("/api/usuario/criar").with(admin())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
@@ -97,12 +115,12 @@ class UsuarioControllerTest {
 
         String json = """
                 {
-                    "nome": "Jo達o Atualizado"
+                    "nome": "João Atualizado"
                 }
                 """;
 
         mockMvc.perform(
-                        patch("/api/usuario/1/editar")
+                        patch("/api/usuario/1/editar").with(admin())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(json)
                 )
@@ -114,27 +132,27 @@ class UsuarioControllerTest {
 
         UsuarioResponseDTO usuario1 = new UsuarioResponseDTO(
                 1L,
-                "Jo達o",
+                "João",
                 "joao@email.com",
-                TipoUsuario.CLIENTE
+                TipoUsuario.FUNCIONARIO
         );
 
         UsuarioResponseDTO usuario2 = new UsuarioResponseDTO(
                 2L,
                 "Maria",
                 "maria@email.com",
-                TipoUsuario.CLIENTE
+                TipoUsuario.FUNCIONARIO
         );
 
         when(listarUsuarioUseCase.listar())
                 .thenReturn(List.of(usuario1, usuario2));
 
         mockMvc.perform(
-                        get("/api/usuario/listar")
+                        get("/api/usuario/listar").with(admin())
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].nome").value("Jo達o"))
+                .andExpect(jsonPath("$[0].nome").value("João"))
                 .andExpect(jsonPath("$[0].email").value("joao@email.com"))
                 .andExpect(jsonPath("$[1].nome").value("Maria"))
                 .andExpect(jsonPath("$[1].email").value("maria@email.com"));
@@ -143,19 +161,25 @@ class UsuarioControllerTest {
     @Test
     void deveRemoverUsuarioComSucesso() throws Exception {
 
-        String json = """
-                {
-                    "id": 1,
-                    "nome": "Administrador",
-                    "tipoUsuario": "ADMIN"
-                }
-                """;
-
-        mockMvc.perform(
-                        delete("/api/usuario/1/remover")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(json)
-                )
+        mockMvc.perform(delete("/api/usuario/1/remover").with(admin()))
                 .andExpect(status().isNoContent());
+
+        verify(removerUsuarioUseCase).deletar(1L);
+    }
+
+    @Test
+    void funcionarioNaoPodeGerenciarUsuarios() throws Exception {
+
+        mockMvc.perform(delete("/api/usuario/1/remover").with(funcionario()))
+                .andExpect(status().isForbidden());
+
+        verifyNoInteractions(removerUsuarioUseCase);
+    }
+
+    @Test
+    void semTokenRetornaUnauthorized() throws Exception {
+
+        mockMvc.perform(get("/api/usuario/listar"))
+                .andExpect(status().isUnauthorized());
     }
 }

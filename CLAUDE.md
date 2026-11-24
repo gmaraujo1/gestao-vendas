@@ -45,7 +45,9 @@ Nesta máquina o JDK 21 do sistema não tem `javac`. Use
 
 - Dinheiro sempre em `BigDecimal` (`NUMERIC` no banco; custo médio com 4 casas).
 - Migrations com Flyway em `backend/src/main/resources/db/migration` (`V<n>__descricao.sql`). Nunca editar uma migration já mergeada; criar outra. O Hibernate só valida (`ddl-auto: validate`).
-- Login com Spring Security + JWT. OpenAPI (springdoc) para gerar o cliente TS do front e do mobile.
+- Login: `POST /api/auth/login` devolve um JWT HS256 (resource server do Spring Security). O claim `tipo` vira `ROLE_ADMIN`/`ROLE_FUNCIONARIO`; `/api/usuario/**` é só ADMIN. Senhas com BCrypt. Quem pede uma ação vem do token, **nunca do corpo da requisição**.
+- Variáveis de ambiente: `JWT_SECRET` (obrigatória, ≥ 32 bytes), `JWT_EXPIRACAO` (padrão 12h), `ADMIN_EMAIL`/`ADMIN_SENHA`/`ADMIN_NOME` (criam o primeiro ADMIN se não houver usuários), `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`. Os testes usam o perfil `test` (`src/test/resources/application-test.yaml`).
+- OpenAPI (springdoc) para gerar o cliente TS do front e do mobile.
 - PDF gerado no backend, para que o mobile reaproveite.
 - Testcontainers para testes de integração com Postgres: anotar a classe com `@IntegrationTest` e nomeá-la `*IntegrationTest` (o surefire só roda `*Test`). Requer Docker. O `testcontainers.version` está fixado em 1.21.4 por causa do Docker 29.
 - Padrão atual por módulo: `domain/`, `application/` (um use case por ação), `controller/`, `repository/`, `dto/`, `mapper/`.

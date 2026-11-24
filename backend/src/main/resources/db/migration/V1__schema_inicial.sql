@@ -9,7 +9,7 @@ CREATE TABLE usuario (
     criado_em     TIMESTAMP(3) NOT NULL DEFAULT now(),
     atualizado_em TIMESTAMP(3) NOT NULL DEFAULT now(),
     CONSTRAINT uk_usuario_email UNIQUE (email),
-    CONSTRAINT ck_usuario_tipo CHECK (tipo IN ('ADMIN', 'FUNCIONARIO', 'CLIENTE'))
+    CONSTRAINT ck_usuario_tipo CHECK (tipo IN ('ADMIN', 'FUNCIONARIO'))
 );
 
 CREATE TABLE produto (

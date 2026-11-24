@@ -20,6 +20,7 @@ mobile/     React Native, só depois que o frontend e o backend estiverem pronto
 ```bash
 cd backend && ./mvnw test   # testes (o CI roda o mesmo em PRs para main)
 ```
+Postgres local: `cd backend && docker compose up -d` (usuário/senha padrão `gestao`; exporte `DB_USERNAME` e `DB_PASSWORD`).
 Nesta máquina o JDK 21 do sistema não tem `javac`. Use
 `JAVA_HOME=~/.jdks/corretto-22.0.2 ./mvnw test` (ou instale o `openjdk-21-jdk`).
 
@@ -42,13 +43,25 @@ Nesta máquina o JDK 21 do sistema não tem `javac`. Use
 
 ## Decisões técnicas
 
-- Dinheiro sempre em `BigDecimal` (o `Produto.precoMedio` atual ainda está em `Double`; corrigir).
-- Migrations com Flyway (o `ddl-auto: validate` atual exige tabelas criadas à mão).
-- Login com Spring Security + JWT. OpenAPI (springdoc) para gerar o cliente TS do front e do mobile.
+- Dinheiro sempre em `BigDecimal` (`NUMERIC` no banco; custo médio com 4 casas).
+- Migrations com Flyway em `backend/src/main/resources/db/migration` (`V<n>__descricao.sql`). Nunca editar uma migration já mergeada; criar outra. O Hibernate só valida (`ddl-auto: validate`).
+- Login: `POST /api/auth/login` devolve um JWT HS256 (resource server do Spring Security). O claim `tipo` vira `ROLE_ADMIN`/`ROLE_FUNCIONARIO`; `/api/usuario/**` é só ADMIN. Senhas com BCrypt. Quem pede uma ação vem do token, **nunca do corpo da requisição**.
+- Variáveis de ambiente: `JWT_SECRET` (obrigatória, ≥ 32 bytes), `JWT_EXPIRACAO` (padrão 12h), `ADMIN_EMAIL`/`ADMIN_SENHA`/`ADMIN_NOME` (criam o primeiro ADMIN se não houver usuários), `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`. Os testes usam o perfil `test` (`src/test/resources/application-test.yaml`).
+- Isolamento por negócio: tabelas de dados têm `negocio_id`. O endpoint declara um parâmetro `NegocioAtual`, resolvido do header `X-Negocio-Id` e validado contra `usuario_negocio` (403 sem vínculo, 400 sem header). Use cases recebem `negocioId` e **toda** consulta filtra por ele (`findByIdAndNegocioId`, nunca `findById`). `GET /api/negocio/meus` lista os negócios do usuário logado. Os negócios vêm da migration (LATICINIO, PAO_NINO).
+- OpenAPI (springdoc) para gerar o cliente TS do front e do mobile.
 - PDF gerado no backend, para que o mobile reaproveite.
-- Testcontainers para testes de integração com Postgres.
+- Testcontainers para testes de integração com Postgres: anotar a classe com `@IntegrationTest` e nomeá-la `*IntegrationTest` (o surefire só roda `*Test`). Requer Docker. O `testcontainers.version` está fixado em 1.21.4 por causa do Docker 29.
 - Padrão atual por módulo: `domain/`, `application/` (um use case por ação), `controller/`, `repository/`, `dto/`, `mapper/`.
-- Pendências de nome: o pacote é `gestaogastos` e o artefato é `gestao-produtos`; padronizar para gestao-vendas.
+- Pacote base `br.com.gestao.gestaovendas`, artefato `gestao-vendas`, banco `gestao_vendas`.
+
+## Pendências conhecidas
+
+- Banco: a V1 parte de um banco vazio (`gestao_vendas`). Um banco antigo com tabelas criadas à mão precisa ser recriado.
+- Antes de expor a API na internet: limitar tentativas de login (no proxy ou na aplicação) e usar HTTPS.
+- O JWT vale até expirar (12h), mesmo se o usuário for removido. Avaliar expiração menor, refresh token ou checagem do usuário no banco.
+- Faltam endpoints para trocar e redefinir senha e para desativar conta (um ADMIN não pode ser removido pela API).
+- Isolamento por convenção: todo controller de dados de negócio deve receber `NegocioAtual`. Considerar um teste ArchUnit quando houver mais módulos.
+- Listagens ainda sem paginação.
 
 ## Roadmap
 

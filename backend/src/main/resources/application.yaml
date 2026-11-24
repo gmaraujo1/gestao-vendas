@@ -1,16 +1,32 @@
 spring:
   application:
-    name: gestao-produtos
+    name: gestao-vendas
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/gestao_produtos
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/gestao_vendas}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: ${SHOW_SQL:false}
     properties:
       hibernate:
         format_sql: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+app:
+  jwt:
+    # Obrigatório: pelo menos 32 caracteres. Gere com: openssl rand -base64 48
+    secret: ${JWT_SECRET:}
+    expiracao: ${JWT_EXPIRACAO:12h}
+  # Cria o primeiro ADMIN na subida, só se não existir nenhum usuário.
+  admin-inicial:
+    nome: ${ADMIN_NOME:Administrador}
+    email: ${ADMIN_EMAIL:}
+    senha: ${ADMIN_SENHA:}

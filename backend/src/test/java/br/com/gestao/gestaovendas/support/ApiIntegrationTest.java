@@ -93,6 +93,42 @@ public abstract class ApiIntegrationTest {
         return UUID.randomUUID().toString().substring(0, 8);
     }
 
+    private static final java.util.concurrent.atomic.AtomicInteger CODIGO_PRODUTO =
+            new java.util.concurrent.atomic.AtomicInteger(800_000);
+
+    /** Cria (como ADMIN) uma categoria e um produto ativo no negócio; devolve o id do produto. */
+    protected Long novoProduto(Long negocioId, String descricao, String precoMedio) throws Exception {
+        String token = tokenAdmin();
+        Long categoria = id(mockMvc.perform(json(noNegocio(post("/api/categoria"), token, negocioId),
+                        "{\"nome\": \"Cat %s\"}".formatted(sufixo())))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString());
+        return id(mockMvc.perform(json(noNegocio(post("/api/produto"), token, negocioId), """
+                        {"codigo": %d, "descricao": "%s", "categoriaId": %d, "unidadeMedida": "UN", "precoMedio": %s}
+                        """.formatted(CODIGO_PRODUTO.incrementAndGet(), descricao, categoria, precoMedio)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString());
+    }
+
+    protected Long novoCliente(Long negocioId, String nome) throws Exception {
+        return id(mockMvc.perform(json(noNegocio(post("/api/cliente"), tokenAdmin(), negocioId),
+                        "{\"nome\": \"%s\"}".formatted(nome)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString());
+    }
+
+    /** Ajusta (como ADMIN) o saldo do produto para a quantidade informada. */
+    protected void definirSaldo(Long negocioId, Long produtoId, String quantidade) throws Exception {
+        mockMvc.perform(json(noNegocio(post("/api/estoque/ajuste"), tokenAdmin(), negocioId),
+                        "{\"produtoId\": %d, \"quantidadeContada\": %s}".formatted(produtoId, quantidade)))
+                .andExpect(status().isOk());
+    }
+
+    protected java.math.BigDecimal saldo(Long negocioId, Long produtoId) throws Exception {
+        String body = mockMvc.perform(noNegocio(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                .get("/api/estoque/produto/" + produtoId), tokenAdmin(), negocioId))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        return new java.math.BigDecimal(JsonPath.read(body, "$.saldo").toString());
+    }
+
     private Long idDoNegocio(String codigo) {
         return negocioRepository.findAll().stream()
                 .filter(n -> n.getCodigo().equals(codigo))

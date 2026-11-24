@@ -5,7 +5,7 @@ Documento para retomar o trabalho em qualquer máquina. O `CLAUDE.md`, na raiz, 
 > **Para retomar com o Claude Code em outro PC:** clone o repositório, abra o Claude Code na raiz e diga
 > "leia o docs/ROADMAP.md e vamos continuar a próxima etapa". O `CLAUDE.md` é carregado automaticamente.
 
-Última atualização: 24/11/2026 (etapa 2).
+Última atualização: 24/11/2026 (etapas 3 e 4 e base do frontend).
 
 ---
 
@@ -14,14 +14,14 @@ Documento para retomar o trabalho em qualquer máquina. O `CLAUDE.md`, na raiz, 
 | # | Etapa | Status | Branch sugerida |
 |---|-------|--------|-----------------|
 | 1 | Base do backend | ✅ Concluída (PRs #7 e #8) | — |
-| 2 | Cadastros: categorias, produtos, clientes, veículos | ✅ Concluída (aguardando PR) | `feat/cadastros` |
-| 3 | Estoque e vendas: movimentações, venda, perda, troca, ajuste | ⏳ Próxima | `feat/estoque-vendas` |
-| 4 | Despesas | ⬜ | `feat/despesas` |
-| 5 | Compras (custo médio) | ⬜ Depende da mãe | `feat/compras` |
+| 2 | Cadastros: categorias, produtos, clientes, veículos | ✅ Concluída (PR #10) | — |
+| 3 | Estoque e vendas: movimentações, venda, perda, troca, ajuste | ✅ Concluída (aguardando PR) | `feat/estoque-vendas-despesas` |
+| 4 | Despesas | ✅ Concluída (mesmo PR da 3) | `feat/estoque-vendas-despesas` |
+| 5 | Compras (custo médio) | ⏳ Próxima no backend; depende da mãe | `feat/compras` |
 | 6 | Relatórios PDF e API do dashboard | ⬜ | `feat/relatorios` |
 | 7 | Pronto para produção | ⬜ | `chore/producao` |
 | | **→ MVP do backend concluído** | | |
-| 8 | Frontend (Vite + React) | ⬜ Pode começar após a etapa 4 | `feat/frontend-*` |
+| 8 | Frontend (Vite + React) | ⏳ Base configurada; telas a fazer | `feat/frontend-*` |
 | 9 | Depois do MVP: WhatsApp, app mobile, módulo Pão Nino | ⬜ | — |
 
 Regra de todas as etapas: uma branch e um PR por etapa, com testes (unitários e de integração com Testcontainers). Antes do PR, revisar com os agents `java-reviewer` e, se a etapa mexer em segurança, `security-reviewer`. Todo dado de negócio tem `negocio_id`, e todo endpoint de dados recebe `NegocioAtual`.
@@ -85,39 +85,58 @@ Migration `V3__cadastros.sql`. Todos os endpoints de negócio exigem `X-Negocio-
 
 ---
 
-## Etapa 3: estoque e vendas (o coração do sistema)
+## ✅ Etapa 3: estoque e vendas (concluída)
 
-**Objetivo:** registrar tudo o que entra e sai e derivar o saldo das movimentações.
+Migration `V4__estoque_vendas_despesas.sql`.
 
-- [ ] **Movimentação de estoque** (`movimentacao_estoque`): negócio, produto, tipo, quantidade com sinal, custo unitário do momento, data/hora, usuário, referência de origem (venda, troca…) e motivo.
-  - Tipos: `VENDA`, `PERDA`, `TROCA_ENTRADA`, `TROCA_SAIDA`, `AJUSTE`, `COMPRA` (a compra entra na etapa 5).
-  - **O saldo nunca é editado direto**: saldo = soma das movimentações. Pode haver uma tabela/visão de saldo atualizada na mesma transação, por performance.
-  - Endpoint de saldo por produto e de extrato (histórico) de um produto.
-  - Decidir se o estoque pode ficar negativo. Sugestão: bloquear a venda sem saldo, com aviso.
-- [ ] **Venda**: cliente (opcional?), data, itens (produto, quantidade, preço unitário) e total.
-  - Cada item gera uma movimentação `VENDA`.
-  - O item guarda o **custo médio do momento** (necessário para calcular o lucro na etapa 6).
-  - Listar com filtro por período e cliente ("o que o Marcelo levou esta semana").
-  - Cancelar a venda gera um estorno, nunca apaga.
-- [ ] **Perda**: produto, quantidade e motivo (`FURADO`, `VENCIDO`, `AVARIADO`, `OUTRO`), mais observação.
-- [ ] **Troca**: cliente, item devolvido e item entregue.
-  - O devolvido volta ao estoque (`TROCA_ENTRADA`) ou vira perda (`PERDA`, motivo VENCIDO etc.).
-  - O entregue sai (`TROCA_SAIDA`).
-- [ ] **Ajuste ("informar estoque")**: o usuário informa a contagem real e o sistema grava a diferença como `AJUSTE`.
-- [ ] **Eventos de domínio**: `VendaRegistrada`, `PerdaRegistrada`, `TrocaRegistrada` publicados com `ApplicationEventPublisher`. Sem ouvinte por enquanto; o WhatsApp vai assinar depois.
-- [ ] **Travar a edição do produto quando houver movimentação**: `unidadeMedida` não pode mudar (corromperia os saldos), e `precoMedio` deixa de ser editável à mão (passa a vir só das compras).
-- [ ] **Fuso horário**: fixar `hibernate.jdbc.time_zone` (ou usar `Clock`) antes de gravar data e hora de vendas, para os filtros por dia não fecharem errado.
-- [ ] Testes: o saldo bate depois de uma sequência de venda, perda, troca e ajuste; não há concorrência vendendo o mesmo produto; o isolamento entre negócios se mantém.
+**Decisões dos donos:**
+- O cliente é obrigatório na venda.
+- O estoque pode ficar negativo.
+- Na troca, quem registra escolhe se o devolvido volta ao estoque ou vira perda.
+- O FUNCIONARIO registra venda, perda, troca e despesa. Cancelar venda e ajustar o estoque são só do ADMIN.
+
+**O que foi feito:**
+- **Movimentação de estoque** (`movimentacao_estoque`):
+  - é imutável e tem sinal: + entra, − sai;
+  - tipos: `VENDA`, `VENDA_ESTORNO`, `PERDA`, `TROCA_ENTRADA`, `TROCA_SAIDA`, `AJUSTE` e `COMPRA` (reservado para a etapa 5);
+  - guarda o custo médio do produto no momento;
+  - **o saldo é a soma das movimentações**, sem tabela de saldo;
+  - toda gravação passa pelo `MovimentacaoService`, que aplica o sinal pelo tipo e trava os produtos (`pg_advisory_xact_lock`, em ordem de id) para o ajuste não brigar com uma venda simultânea.
+- **Estoque** (`/api/estoque`):
+  - saldo de todos os produtos, paginado e com filtros;
+  - `GET /api/estoque/produto/{id}`: saldo e extrato;
+  - `POST /api/estoque/ajuste` ("informar estoque", só ADMIN): grava a diferença entre a contagem e o saldo.
+- **Venda** (`/api/venda`):
+  - cliente obrigatório e itens (produto, quantidade, preço);
+  - cada item guarda o **custo do momento** (base do CMV da etapa 6);
+  - o subtotal arredonda HALF_UP;
+  - `dataHora` opcional, que pode ser retroativa mas não futura;
+  - listagem por período, cliente e status;
+  - **cancelar** (`POST /api/venda/{id}/cancelar`, só ADMIN, com motivo) faz o estorno com o custo da venda original. A venda é travada no banco, então dois cliques não estornam duas vezes.
+- **Perda** (`/api/perda`): produto, quantidade e motivo (`FURADO`, `VENCIDO`, `AVARIADO`, `OUTRO`). A listagem por período inclui as perdas vindas de trocas.
+- **Troca** (`/api/troca`): cliente, itens devolvidos (destino `ESTOQUE` ou `PERDA` com motivo) e itens entregues.
+  - Devolvido que vira perda gera `TROCA_ENTRADA` + `PERDA`: o estoque não muda, mas a perda aparece nos relatórios.
+- **Eventos de domínio** (`common/evento`): `VendaRegistrada`, `VendaCancelada`, `PerdaRegistrada`, `TrocaRegistrada` e `EstoqueAjustado`.
+  - Hoje só vão para o log, depois do commit.
+  - O WhatsApp vai assinar esses eventos com `@TransactionalEventListener`.
+- **Travas:**
+  - produto, cliente ou veículo com histórico não é excluído (409; desative);
+  - a unidade de um produto com movimentação não muda.
+- **Fuso:** a JVM roda em `America/Sao_Paulo` (definido no `main()`, configurável por `FUSO_HORARIO`), para "vendas de hoje" fecharem no dia certo.
 
 ---
 
-## Etapa 4: despesas
+## ✅ Etapa 4: despesas (concluída)
 
-- [ ] **Despesa** (por negócio): data, valor, tipo (`GASOLINA`, `PEDAGIO`, `PNEU`, `MECANICA`, `OUTROS`, talvez uma tabela editável), descrição, veículo opcional e usuário que lançou.
-- [ ] Listagem com filtros por período, tipo e veículo, e totais por tipo e por veículo.
-- [ ] Testes, incluindo o isolamento.
-
-> Depois desta etapa o frontend (etapa 8) já pode começar em paralelo, porque os cadastros, as vendas e as despesas estarão prontos.
+- **Despesa** (`/api/despesa`, por negócio):
+  - data (sem valor = hoje; não pode ser futura), valor, tipo (`GASOLINA`, `PEDAGIO`, `PNEU`, `MECANICA`, `OUTROS`), descrição e veículo opcional, que precisa estar ativo;
+  - o FUNCIONARIO lança; editar e excluir é só do ADMIN.
+- Listagem paginada por período, tipo e veículo.
+- `GET /api/despesa/resumo?de=&ate=`: total e totais por tipo e por veículo.
+- **OpenAPI (springdoc)**, adiantado da etapa 7:
+  - `/v3/api-docs` e `/swagger-ui.html`, com JWT e header `X-Negocio-Id` documentados;
+  - **desligado por padrão**: suba com `SPRINGDOC_ENABLED=true` para gerar o cliente do front.
+- 100 testes, incluindo cancelamento simultâneo, isolamento do saldo entre negócios e permissões.
 
 ---
 
@@ -148,18 +167,24 @@ Migration `V3__cadastros.sql`. Todos os endpoints de negócio exigem `X-Negocio-
   - perdas.
 - [ ] Testes com dados conhecidos, conferindo o valor do lucro.
 
+**Regras de custo já gravadas (etapa 3), para usar nos relatórios:**
+- CMV = Σ (`venda_item.quantidade × custo_unitario`) das vendas `REGISTRADA`. Venda cancelada sai do cálculo, e o estorno usa o mesmo custo da venda.
+- Custo das perdas = Σ (|quantidade| × `custo_unitario`) das movimentações `PERDA` (avulsas e de trocas).
+- Despesas = Σ `despesa.valor` no período (por `data`).
+
 ---
 
 ## Etapa 7: pronto para produção
 
 Itens de segurança e operação que estão pendentes desde a etapa 1. Devem ficar prontos **antes de colocar o sistema na internet**.
 
-- [ ] **OpenAPI (springdoc)**: documentação em `/swagger-ui` e o JSON para gerar o cliente TypeScript do front e do mobile.
+- [x] **OpenAPI (springdoc)**: feito na etapa 4 (desligado por padrão; `SPRINGDOC_ENABLED=true` para ligar).
 - [ ] **Limite de tentativas de login**: bloqueio após N falhas, por IP e por e-mail.
 - [ ] **Senha**: endpoint para o usuário trocar a própria senha e para o ADMIN redefinir a de outro.
 - [ ] **Desativar conta** (flag `ativo`) e invalidar o token de usuário desativado (checar no banco ou reduzir a expiração e usar refresh token).
 - [ ] **Teste de arquitetura (ArchUnit)**: todo controller de dados de negócio recebe `NegocioAtual`.
-- [ ] **Perfil de produção**: logs, `show-sql` desligado, CORS só para o domínio do front.
+- [ ] **Perfil de produção**: logs, `show-sql` desligado, CORS só para o domínio do front (em dev o proxy do Vite dispensa CORS).
+- [ ] **Permissão de leitura**: hoje o FUNCIONARIO enxerga custos (`precoMedio`, `custoUnitario`) e totais de despesa. Decidir se isso fica só com o ADMIN.
 - [ ] **Empacotamento**: Dockerfile do backend e `compose` de produção (backend + Postgres, com volume).
 - [ ] **Backup do banco** (pg_dump agendado) e teste de restauração.
 - [ ] **Deploy**: onde hospedar (VPS barata, Railway, Render…), HTTPS (Caddy/nginx) e variáveis de ambiente.
@@ -168,11 +193,23 @@ Itens de segurança e operação que estão pendentes desde a etapa 1. Devem fic
 
 ---
 
-## Etapa 8: frontend (depois ou em paralelo, a partir da etapa 4)
+## ⏳ Etapa 8: frontend (base configurada)
 
-- Vite + React + TypeScript + Tailwind + shadcn/ui + TanStack Query/Table + React Hook Form/Zod + Recharts.
-- Cliente da API gerado a partir do OpenAPI.
-- Login, seletor de negócio (envia `X-Negocio-Id`), cadastros, venda rápida, perda, troca, ajuste, despesas, compras, dashboard e download dos PDFs.
+**Pronto** (veja `frontend/README.md`):
+- Vite 8 + React 19 + TypeScript 5.9 + Tailwind 4 + shadcn/ui (preset Nova);
+- TanStack Query/Table, React Hook Form + Zod, Recharts e React Router;
+- cliente da API tipado (openapi-fetch + `npm run gen:api`) que manda o token e o `X-Negocio-Id` sozinho;
+- sessão, formatadores pt-BR, proxy `/api` para o backend em dev;
+- job de lint e build no CI.
+
+**A fazer (telas):**
+- [ ] Login e escolha do negócio (`GET /api/negocio/meus`).
+- [ ] Layout com menu, escondendo o que o FUNCIONARIO não pode fazer.
+- [ ] Cadastros: produtos, categorias, clientes, veículos (e usuários, para o ADMIN).
+- [ ] Venda rápida (busca de cliente e produto, itens, total), lista de vendas e cancelamento.
+- [ ] Estoque (saldos e extrato), ajuste, perda e troca.
+- [ ] Despesas e resumo.
+- [ ] Depois: compras, dashboard e download dos PDFs.
 
 ## Etapa 9: depois do MVP
 
@@ -187,8 +224,7 @@ Itens de segurança e operação que estão pendentes desde a etapa 1. Devem fic
 | Assunto | Quem decide | Afeta |
 |---------|-------------|-------|
 | Formato do pedido ao fornecedor | Mãe | Etapa 5 |
-| Venda sem cliente é permitida? | Pais | Etapa 3 |
-| O estoque pode ficar negativo? | Pais | Etapa 3 |
+| O FUNCIONARIO deve ver custos e totais de despesa? | Pais | Etapa 7 |
 | Onde hospedar | Você | Etapa 7 |
 
 ---
@@ -202,8 +238,15 @@ export DB_USERNAME=gestao DB_PASSWORD=gestao
 export JWT_SECRET="$(openssl rand -base64 48)"
 export ADMIN_EMAIL=voce@exemplo.com ADMIN_SENHA=uma-senha-forte
 ./mvnw test                          # precisa de JDK 21 e Docker
-./mvnw spring-boot:run
+SPRINGDOC_ENABLED=true ./mvnw spring-boot:run   # API em :8080, Swagger em /swagger-ui.html
+
+# em outro terminal
+cd ../frontend
+npm install
+npm run gen:api                      # tipos da API (backend precisa estar rodando)
+npm run dev                          # http://localhost:5173
 ```
 
+- Precisa de Node 22+ para o frontend.
 - Precisa de JDK 21 **com `javac`** (por exemplo `openjdk-21-jdk`). No PC atual se usa `JAVA_HOME=~/.jdks/corretto-22.0.2`.
 - As skills e os agents do Claude Code estão em `.claude/` e vêm junto no clone.

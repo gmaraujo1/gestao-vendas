@@ -26,7 +26,15 @@ spring:
         default-page-size: 20
         max-page-size: 100
 
+springdoc:
+  api-docs:
+    enabled: ${SPRINGDOC_ENABLED:false}
+  swagger-ui:
+    enabled: ${SPRINGDOC_ENABLED:false}
+  default-produces-media-type: application/json
+
 app:
+  fuso-horario: ${FUSO_HORARIO:America/Sao_Paulo}
   jwt:
     # Obrigatório: pelo menos 32 caracteres. Gere com: openssl rand -base64 48
     secret: ${JWT_SECRET:}

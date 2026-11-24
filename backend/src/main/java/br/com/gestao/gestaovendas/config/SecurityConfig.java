@@ -38,15 +38,19 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers("/error").permitAll()
+                        // documentação da API: só existe com SPRINGDOC_ENABLED=true (desligada por padrão)
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/usuario/**").hasRole("ADMIN")
-                        // Cadastros: todos consultam. O FUNCIONARIO só cadastra e edita clientes;
-                        // produtos, categorias, veículos e qualquer exclusão são do ADMIN.
-                        .requestMatchers(HttpMethod.GET, "/api/produto/**", "/api/categoria/**",
-                                "/api/cliente/**", "/api/veiculo/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/cliente").authenticated()
+                        // Regras de permissão (ver CLAUDE.md). Todo GET de dados é liberado para quem
+                        // está logado; o FUNCIONARIO registra vendas, perdas, trocas e despesas e
+                        // cadastra/edita clientes. O resto (cadastros, cancelamento, ajuste,
+                        // edição/exclusão de despesas e qualquer exclusão) é do ADMIN.
+                        .requestMatchers(HttpMethod.GET, "/api/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/venda", "/api/perda", "/api/troca",
+                                "/api/despesa", "/api/cliente").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/cliente/*").authenticated()
-                        .requestMatchers("/api/produto/**", "/api/categoria/**",
-                                "/api/cliente/**", "/api/veiculo/**").hasRole("ADMIN")
+                        // padrão seguro: qualquer outra escrita na API é só do ADMIN
+                        .requestMatchers("/api/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(o -> o.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
                 .build();

@@ -7,6 +7,7 @@ import br.com.gestao.gestaovendas.negocio.domain.Negocio;
 import br.com.gestao.gestaovendas.negocio.repository.NegocioRepository;
 import br.com.gestao.gestaovendas.produto.repository.ProdutoRepository;
 import br.com.gestao.gestaovendas.support.IntegrationTest;
+import br.com.gestao.gestaovendas.support.LimpezaBanco;
 import br.com.gestao.gestaovendas.usuario.domain.Usuario;
 import br.com.gestao.gestaovendas.usuario.repository.UsuarioRepository;
 import com.jayway.jsonpath.JsonPath;
@@ -42,6 +43,9 @@ class IsolamentoNegocioIntegrationTest {
     private NegocioRepository negocioRepository;
     @Autowired
     private ProdutoRepository produtoRepository;
+
+    @Autowired
+    private LimpezaBanco limpezaBanco;
     @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
@@ -54,7 +58,7 @@ class IsolamentoNegocioIntegrationTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        produtoRepository.deleteAll();
+        limpezaBanco.apagarProdutosEHistorico();
         laticinio = idDo("LATICINIO");
         paoNino = idDo("PAO_NINO");
         garanteFuncionarioSoDoLaticinio();

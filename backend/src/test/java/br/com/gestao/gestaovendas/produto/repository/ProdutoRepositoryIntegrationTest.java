@@ -8,6 +8,7 @@ import br.com.gestao.gestaovendas.negocio.repository.NegocioRepository;
 import br.com.gestao.gestaovendas.produto.domain.Produto;
 import br.com.gestao.gestaovendas.produto.dto.ProdutoFiltroDTO;
 import br.com.gestao.gestaovendas.support.IntegrationTest;
+import br.com.gestao.gestaovendas.support.LimpezaBanco;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,9 @@ class ProdutoRepositoryIntegrationTest {
     private ProdutoRepository produtoRepository;
 
     @Autowired
+    private LimpezaBanco limpezaBanco;
+
+    @Autowired
     private NegocioRepository negocioRepository;
 
     @Autowired
@@ -35,7 +39,7 @@ class ProdutoRepositoryIntegrationTest {
 
     @BeforeEach
     void limpar() {
-        produtoRepository.deleteAll();
+        limpezaBanco.apagarProdutosEHistorico();
         laticinio = idDo("LATICINIO");
         paoNino = idDo("PAO_NINO");
     }

@@ -2,7 +2,10 @@ package br.com.gestao.gestaovendas.cliente.application;
 
 import br.com.gestao.gestaovendas.cliente.domain.Cliente;
 import br.com.gestao.gestaovendas.cliente.repository.ClienteRepository;
+import br.com.gestao.gestaovendas.exception.ConflictException;
 import br.com.gestao.gestaovendas.exception.ResourceNotFoundException;
+import br.com.gestao.gestaovendas.troca.repository.TrocaRepository;
+import br.com.gestao.gestaovendas.venda.repository.VendaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,15 +15,17 @@ import org.springframework.transaction.annotation.Transactional;
 public class RemoverClienteUseCase {
 
     private final ClienteRepository clienteRepository;
+    private final VendaRepository vendaRepository;
+    private final TrocaRepository trocaRepository;
 
-    /**
-     * Remove de vez. Na etapa 3, cliente com venda não poderá ser removido (só desativado);
-     * a FK da venda vai garantir isso.
-     */
+    /** Cliente com vendas ou trocas não é excluído (perderia o histórico): desative. */
     @Transactional
     public void remover(Long negocioId, Long id) {
         Cliente cliente = clienteRepository.findByIdAndNegocioId(id, negocioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado"));
+        if (vendaRepository.existsByClienteId(cliente.getId()) || trocaRepository.existsByClienteId(cliente.getId())) {
+            throw new ConflictException("O cliente tem vendas ou trocas. Desative-o em vez de excluir.");
+        }
         clienteRepository.delete(cliente);
     }
 }

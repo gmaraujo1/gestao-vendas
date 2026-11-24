@@ -2,6 +2,7 @@ package br.com.gestao.gestaovendas.usuario.application;
 
 import br.com.gestao.gestaovendas.usuario.domain.Usuario;
 import br.com.gestao.gestaovendas.usuario.domain.UsuarioValidator;
+import br.com.gestao.gestaovendas.usuario.domain.VinculoNegocioService;
 import br.com.gestao.gestaovendas.usuario.dto.UsuarioRequestDTO;
 import br.com.gestao.gestaovendas.usuario.dto.UsuarioResponseDTO;
 import br.com.gestao.gestaovendas.usuario.mapper.UsuarioMapper;
@@ -21,6 +22,7 @@ public class CriarUsuarioUseCase {
     private final UsuarioValidator usuarioValidator;
     private final UsuarioMapper usuarioMapper;
     private final PasswordEncoder passwordEncoder;
+    private final VinculoNegocioService vinculoNegocioService;
 
     @Transactional
     public UsuarioResponseDTO criar(UsuarioRequestDTO request) {
@@ -29,6 +31,7 @@ public class CriarUsuarioUseCase {
 
         Usuario novoUsuario = usuarioMapper.toEntity(request);
         novoUsuario.setSenha(passwordEncoder.encode(request.getSenha()));
+        vinculoNegocioService.definirNegocios(novoUsuario, request.getNegocioIds());
         novoUsuario.setCriadoEm(LocalDateTime.now());
         novoUsuario.setAtualizadoEm(LocalDateTime.now());
 

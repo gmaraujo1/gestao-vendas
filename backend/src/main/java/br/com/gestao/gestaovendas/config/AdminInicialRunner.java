@@ -1,6 +1,7 @@
 package br.com.gestao.gestaovendas.config;
 
 import br.com.gestao.gestaovendas.common.enums.TipoUsuario;
+import br.com.gestao.gestaovendas.negocio.repository.NegocioRepository;
 import br.com.gestao.gestaovendas.usuario.domain.Usuario;
 import br.com.gestao.gestaovendas.usuario.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 
 /**
  * Sem usuário nenhum não há como logar (criar usuário exige ADMIN).
@@ -25,6 +27,7 @@ public class AdminInicialRunner implements ApplicationRunner {
     private final AdminInicialProperties props;
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
+    private final NegocioRepository negocioRepository;
 
     @Override
     @Transactional
@@ -41,6 +44,7 @@ public class AdminInicialRunner implements ApplicationRunner {
         admin.setEmail(props.email());
         admin.setSenha(passwordEncoder.encode(props.senha()));
         admin.setTipoUsuario(TipoUsuario.ADMIN);
+        admin.setNegocios(new HashSet<>(negocioRepository.findAll()));
         admin.setCriadoEm(LocalDateTime.now());
         admin.setAtualizadoEm(LocalDateTime.now());
         usuarioRepository.save(admin);

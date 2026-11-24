@@ -17,8 +17,8 @@ public class ListarProdutoUseCase {
     private final ProdutoRepository produtoRepository;
     private final ProdutoMapper produtoMapper;
 
-    public List<ProdutoResponseDTO> listar(ProdutoFiltroDTO filtro) {
-        return produtoRepository.findAll(ProdutoSpecification.comFiltros(filtro))
+    public List<ProdutoResponseDTO> listar(Long negocioId, ProdutoFiltroDTO filtro) {
+        return produtoRepository.findAll(ProdutoSpecification.comFiltros(negocioId, filtro))
                 .stream()
                 .map(produtoMapper::toResponse)
                 .toList();

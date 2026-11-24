@@ -46,6 +46,15 @@ public class GlobalExceptionHandler {
                 .body(Map.of("message", ex.getMessage()));
     }
 
+    @ExceptionHandler(RequisicaoInvalidaException.class)
+    public ResponseEntity<Map<String, Object>> handleRequisicaoInvalida(
+            RequisicaoInvalidaException ex) {
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", ex.getMessage()));
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<Map<String, Object>> handleBusiness(
             BusinessException ex) {

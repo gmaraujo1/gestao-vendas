@@ -1,6 +1,7 @@
 package br.com.gestao.gestaovendas.usuario.application;
 
 import br.com.gestao.gestaovendas.usuario.domain.Usuario;
+import br.com.gestao.gestaovendas.usuario.domain.VinculoNegocioService;
 import br.com.gestao.gestaovendas.usuario.dto.UsuarioRequestEditDTO;
 import br.com.gestao.gestaovendas.usuario.dto.UsuarioResponseDTO;
 import br.com.gestao.gestaovendas.usuario.mapper.UsuarioMapper;
@@ -25,6 +26,9 @@ class EditarUsuarioUseCaseTest {
 
     @Mock
     private UsuarioMapper usuarioMapper;
+
+    @Mock
+    private VinculoNegocioService vinculoNegocioService;
 
     @InjectMocks
     private EditarUsuarioUseCase editarUsuarioUseCase;

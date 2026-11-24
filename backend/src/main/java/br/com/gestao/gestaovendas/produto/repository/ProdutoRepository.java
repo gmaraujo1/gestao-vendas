@@ -5,9 +5,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface ProdutoRepository extends JpaRepository<Produto, Long>, JpaSpecificationExecutor<Produto> {
 
-    Boolean existsByCodigo(Integer codigo);
+    boolean existsByNegocioIdAndCodigo(Long negocioId, Integer codigo);
+
+    Optional<Produto> findByIdAndNegocioId(Long id, Long negocioId);
+
+    boolean existsByIdAndNegocioId(Long id, Long negocioId);
 
 }

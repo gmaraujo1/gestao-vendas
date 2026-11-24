@@ -20,8 +20,8 @@ public class EditarProdutoUseCase {
     private final ProdutoMapper produtoMapper;
 
     @Transactional
-    public ProdutoResponseDTO atualizar(Long id, ProdutoRequestEditDTO request) {
-        Produto produto = produtoRepository.findById(id)
+    public ProdutoResponseDTO atualizar(Long negocioId, Long id, ProdutoRequestEditDTO request) {
+        Produto produto = produtoRepository.findByIdAndNegocioId(id, negocioId)
                 .orElseThrow(() -> new ResourceNotFoundException("Não foi possível encontrar o produto"));
 
         produtoMapper.updateEntity(produto, request);

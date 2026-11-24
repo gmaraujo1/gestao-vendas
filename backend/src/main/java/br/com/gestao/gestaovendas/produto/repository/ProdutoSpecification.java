@@ -7,18 +7,26 @@ import org.springframework.data.jpa.domain.Specification;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Objects;
 
 public class ProdutoSpecification {
 
     private ProdutoSpecification() {
     }
 
-    public static Specification<Produto> comFiltros(ProdutoFiltroDTO filtro) {
+    /** O negócio é obrigatório: nenhuma consulta de produto cruza negócios. */
+    public static Specification<Produto> comFiltros(Long negocioId, ProdutoFiltroDTO filtro) {
         return Specification
-                .where(descricaoContem(filtro.descricao()))
+                .where(doNegocio(negocioId))
+                .and(descricaoContem(filtro.descricao()))
                 .and(precoEntre(filtro.precoMinimo(), filtro.precoMaximo()))
                 .and(atualizadoEntre(filtro.atualizadoDe(), filtro.atualizadoAte()))
                 .and(criadoEntre(filtro.criadoDe(), filtro.criadoAte()));
+    }
+
+    private static Specification<Produto> doNegocio(Long negocioId) {
+        Objects.requireNonNull(negocioId, "negocioId");
+        return (root, query, cb) -> cb.equal(root.get("negocioId"), negocioId);
     }
 
     private static Specification<Produto> descricaoContem(String descricao) {

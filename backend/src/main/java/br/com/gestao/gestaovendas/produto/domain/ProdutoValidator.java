@@ -11,9 +11,8 @@ public class ProdutoValidator {
 
     private final ProdutoRepository produtoRepository;
 
-    public void validaCodigoProduto(Integer codigo) {
-        Boolean codigoExistente = produtoRepository.existsByCodigo(codigo);
-        if (codigoExistente) {
+    public void validaCodigoProduto(Long negocioId, Integer codigo) {
+        if (produtoRepository.existsByNegocioIdAndCodigo(negocioId, codigo)) {
             throw new ConflictException("Código de produto já existente!");
         }
     }

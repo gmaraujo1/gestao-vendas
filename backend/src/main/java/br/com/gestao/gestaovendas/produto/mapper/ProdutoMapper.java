@@ -13,6 +13,7 @@ import org.mapstruct.MappingTarget;
 public interface ProdutoMapper {
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "negocioId", ignore = true)
     @Mapping(target = "criadoEm", ignore = true)
     @Mapping(target = "atualizadoEm", ignore = true)
     Produto toEntity(ProdutoRequestDTO dto);
@@ -20,6 +21,7 @@ public interface ProdutoMapper {
     ProdutoResponseDTO toResponse(Produto produto);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "negocioId", ignore = true)
     @Mapping(target = "codigo", ignore = true)
     @Mapping(target = "criadoEm", ignore = true)
     @Mapping(target = "atualizadoEm", ignore = true)

@@ -24,7 +24,11 @@ public class Produto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "codigo", nullable = false, unique = true, length = 12)
+    @Column(name = "negocio_id", nullable = false, updatable = false)
+    private Long negocioId;
+
+    /** Único dentro do negócio. */
+    @Column(name = "codigo", nullable = false)
     private Integer codigo;
 
     @Column(name = "descricao", nullable = false, length = 128)

@@ -13,8 +13,8 @@ public class RemoverProdutoUseCase {
     private final ProdutoRepository produtoRepository;
 
     @Transactional
-    public void deletar(Long id) {
-        if (!produtoRepository.existsById(id)) {
+    public void deletar(Long negocioId, Long id) {
+        if (!produtoRepository.existsByIdAndNegocioId(id, negocioId)) {
             throw new ResourceNotFoundException("Não foi possível encontrar o produto");
         }
         produtoRepository.deleteById(id);

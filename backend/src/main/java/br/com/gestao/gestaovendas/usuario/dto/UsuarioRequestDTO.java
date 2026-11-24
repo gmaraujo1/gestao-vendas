@@ -3,12 +3,15 @@ package br.com.gestao.gestaovendas.usuario.dto;
 import br.com.gestao.gestaovendas.common.enums.TipoUsuario;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.Set;
 
 @Getter
 @Setter
@@ -30,4 +33,7 @@ public class UsuarioRequestDTO {
 
     @NotNull(message = "Tipo de usuário é obrigatório")
     private TipoUsuario tipoUsuario;
+
+    @NotEmpty(message = "Informe ao menos um negócio")
+    private Set<Long> negocioIds;
 }

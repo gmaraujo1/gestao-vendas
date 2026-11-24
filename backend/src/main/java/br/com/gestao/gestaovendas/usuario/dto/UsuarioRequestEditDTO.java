@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Set;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,5 +20,9 @@ public class UsuarioRequestEditDTO {
 
     @Email(message = "E-mail inválido")
     private String email;
+
+    /** Opcional: quando vier, substitui os negócios do usuário. */
+    @Size(min = 1, message = "Informe ao menos um negócio")
+    private Set<Long> negocioIds;
 
 }

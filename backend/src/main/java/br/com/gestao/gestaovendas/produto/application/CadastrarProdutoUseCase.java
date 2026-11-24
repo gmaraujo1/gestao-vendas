@@ -21,10 +21,11 @@ public class CadastrarProdutoUseCase {
     private final ProdutoMapper produtoMapper;
 
     @Transactional
-    public ProdutoResponseDTO cadastrar(ProdutoRequestDTO request) {
-        produtoValidator.validaCodigoProduto(request.getCodigo());
+    public ProdutoResponseDTO cadastrar(Long negocioId, ProdutoRequestDTO request) {
+        produtoValidator.validaCodigoProduto(negocioId, request.getCodigo());
 
         Produto novoProduto = produtoMapper.toEntity(request);
+        novoProduto.setNegocioId(negocioId);
         novoProduto.setCriadoEm(LocalDateTime.now());
         novoProduto.setAtualizadoEm(LocalDateTime.now());
 

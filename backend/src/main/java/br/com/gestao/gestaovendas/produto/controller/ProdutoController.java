@@ -1,5 +1,6 @@
 package br.com.gestao.gestaovendas.produto.controller;
 
+import br.com.gestao.gestaovendas.negocio.context.NegocioAtual;
 import br.com.gestao.gestaovendas.produto.application.CadastrarProdutoUseCase;
 import br.com.gestao.gestaovendas.produto.application.EditarProdutoUseCase;
 import br.com.gestao.gestaovendas.produto.application.ListarProdutoUseCase;
@@ -30,13 +31,14 @@ public class ProdutoController {
     private final RemoverProdutoUseCase removerProdutoUseCase;
 
     @PostMapping(path = "/cadastrar")
-    public ResponseEntity<ProdutoResponseDTO> cadastrarNovoProduto(@Valid @RequestBody ProdutoRequestDTO dto) {
-        ProdutoResponseDTO resposta = cadastrarProdutoUseCase.cadastrar(dto);
+    public ResponseEntity<ProdutoResponseDTO> cadastrarNovoProduto(NegocioAtual negocio, @Valid @RequestBody ProdutoRequestDTO dto) {
+        ProdutoResponseDTO resposta = cadastrarProdutoUseCase.cadastrar(negocio.id(), dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
     }
 
     @GetMapping
     public ResponseEntity<List<ProdutoResponseDTO>> listarProdutos(
+            NegocioAtual negocio,
             @RequestParam(required = false) String descricao,
             @RequestParam(required = false) BigDecimal precoMinimo,
             @RequestParam(required = false) BigDecimal precoMaximo,
@@ -48,20 +50,21 @@ public class ProdutoController {
         ProdutoFiltroDTO filtro = new ProdutoFiltroDTO(
                 descricao, precoMinimo, precoMaximo, atualizadoDe, atualizadoAte, criadoDe, criadoAte
         );
-        return ResponseEntity.ok(listarProdutoUseCase.listar(filtro));
+        return ResponseEntity.ok(listarProdutoUseCase.listar(negocio.id(), filtro));
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<ProdutoResponseDTO> editarProduto(
+            NegocioAtual negocio,
             @PathVariable Long id,
             @Valid @RequestBody ProdutoRequestEditDTO dto) {
-        ProdutoResponseDTO resposta = editarProdutoUseCase.atualizar(id, dto);
+        ProdutoResponseDTO resposta = editarProdutoUseCase.atualizar(negocio.id(), id, dto);
         return ResponseEntity.ok(resposta);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarProduto(@PathVariable Long id) {
-        removerProdutoUseCase.deletar(id);
+    public ResponseEntity<Void> deletarProduto(NegocioAtual negocio, @PathVariable Long id) {
+        removerProdutoUseCase.deletar(negocio.id(), id);
         return ResponseEntity.noContent().build();
     }
 }

@@ -2,6 +2,7 @@ package br.com.gestao.gestaovendas.usuario.controller;
 
 import br.com.gestao.gestaovendas.common.enums.TipoUsuario;
 import br.com.gestao.gestaovendas.config.SecurityConfig;
+import br.com.gestao.gestaovendas.negocio.context.NegocioAtualArgumentResolver;
 import br.com.gestao.gestaovendas.usuario.application.CriarUsuarioUseCase;
 import br.com.gestao.gestaovendas.usuario.application.EditarUsuarioUseCase;
 import br.com.gestao.gestaovendas.usuario.application.ListarUsuarioUseCase;
@@ -19,6 +20,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -47,6 +49,9 @@ class UsuarioControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
+    private NegocioAtualArgumentResolver negocioAtualArgumentResolver;
+
+    @MockitoBean
     private CriarUsuarioUseCase criarUsuarioUseCase;
 
     @MockitoBean
@@ -71,7 +76,8 @@ class UsuarioControllerTest {
                     "nome": "João da Silva",
                     "email": "joao@email.com",
                     "senha": "123456",
-                    "tipoUsuario": "FUNCIONARIO"
+                    "tipoUsuario": "FUNCIONARIO",
+                    "negocioIds": [1]
                 }
                 """;
 
@@ -134,14 +140,16 @@ class UsuarioControllerTest {
                 1L,
                 "João",
                 "joao@email.com",
-                TipoUsuario.FUNCIONARIO
+                TipoUsuario.FUNCIONARIO,
+                Set.of(1L)
         );
 
         UsuarioResponseDTO usuario2 = new UsuarioResponseDTO(
                 2L,
                 "Maria",
                 "maria@email.com",
-                TipoUsuario.FUNCIONARIO
+                TipoUsuario.FUNCIONARIO,
+                Set.of(1L)
         );
 
         when(listarUsuarioUseCase.listar())

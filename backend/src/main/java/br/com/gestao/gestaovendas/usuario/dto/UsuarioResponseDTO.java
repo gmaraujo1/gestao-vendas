@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Set;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -19,5 +21,7 @@ public class UsuarioResponseDTO {
     private String email;
 
     private TipoUsuario tipoUsuario;
+
+    private Set<Long> negocioIds;
 
 }

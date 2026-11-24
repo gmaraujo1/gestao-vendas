@@ -3,6 +3,7 @@ package br.com.gestao.gestaovendas.usuario.application;
 import br.com.gestao.gestaovendas.common.enums.TipoUsuario;
 import br.com.gestao.gestaovendas.usuario.domain.Usuario;
 import br.com.gestao.gestaovendas.usuario.domain.UsuarioValidator;
+import br.com.gestao.gestaovendas.usuario.domain.VinculoNegocioService;
 import br.com.gestao.gestaovendas.usuario.dto.UsuarioRequestDTO;
 import br.com.gestao.gestaovendas.usuario.dto.UsuarioResponseDTO;
 import br.com.gestao.gestaovendas.usuario.mapper.UsuarioMapper;
@@ -16,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -35,6 +37,9 @@ class CriarUsuarioUseCaseTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private VinculoNegocioService vinculoNegocioService;
+
     @InjectMocks
     private CriarUsuarioUseCase criarUsuarioUseCase;
 
@@ -49,7 +54,8 @@ class CriarUsuarioUseCaseTest {
                 "João da Silva",
                 "joao@email.com",
                 "123456",
-                TipoUsuario.FUNCIONARIO
+                TipoUsuario.FUNCIONARIO,
+                Set.of(1L)
         );
 
         usuario = new Usuario();
@@ -82,6 +88,7 @@ class CriarUsuarioUseCaseTest {
         assertNotNull(usuario.getCriadoEm());
         assertNotNull(usuario.getAtualizadoEm());
 
+        verify(vinculoNegocioService).definirNegocios(usuario, Set.of(1L));
         verify(usuarioValidator).validaNomeUsuario(request.getNome());
         verify(usuarioValidator).validaEmailUsuario(request.getEmail());
         verify(usuarioMapper).toEntity(request);

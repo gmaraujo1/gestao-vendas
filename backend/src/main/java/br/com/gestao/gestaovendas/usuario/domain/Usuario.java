@@ -1,9 +1,7 @@
 package br.com.gestao.gestaovendas.usuario.domain;
 
 import br.com.gestao.gestaovendas.common.enums.TipoUsuario;
-import jakarta.persistence.Entity;
-
-
+import br.com.gestao.gestaovendas.negocio.domain.Negocio;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,6 +10,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -36,6 +36,14 @@ public class Usuario {
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo", nullable = false, length = 20)
     private TipoUsuario tipoUsuario;
+
+    /** Negócios que o usuário pode acessar (Laticínio, Pão Nino). */
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "usuario_negocio",
+            joinColumns = @JoinColumn(name = "usuario_id"),
+            inverseJoinColumns = @JoinColumn(name = "negocio_id"))
+    private Set<Negocio> negocios = new HashSet<>();
 
     @CreatedDate
     @Column(name = "criado_em", nullable = false, updatable = false, precision = 3)

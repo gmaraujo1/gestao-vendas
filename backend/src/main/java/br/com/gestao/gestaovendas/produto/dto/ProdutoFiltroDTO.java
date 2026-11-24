@@ -5,6 +5,8 @@ import java.time.LocalDate;
 
 public record ProdutoFiltroDTO(
         String descricao,
+        Long categoriaId,
+        Boolean ativo,
         BigDecimal precoMinimo,
         BigDecimal precoMaximo,
         LocalDate atualizadoDe,
@@ -12,4 +14,8 @@ public record ProdutoFiltroDTO(
         LocalDate criadoDe,
         LocalDate criadoAte
 ) {
+
+    public static ProdutoFiltroDTO vazio() {
+        return new ProdutoFiltroDTO(null, null, null, null, null, null, null, null, null);
+    }
 }

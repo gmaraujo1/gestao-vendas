@@ -48,6 +48,9 @@ Nesta máquina o JDK 21 do sistema não tem `javac`. Use
 - Login: `POST /api/auth/login` devolve um JWT HS256 (resource server do Spring Security). O claim `tipo` vira `ROLE_ADMIN`/`ROLE_FUNCIONARIO`; `/api/usuario/**` é só ADMIN. Senhas com BCrypt. Quem pede uma ação vem do token, **nunca do corpo da requisição**.
 - Variáveis de ambiente: `JWT_SECRET` (obrigatória, ≥ 32 bytes), `JWT_EXPIRACAO` (padrão 12h), `ADMIN_EMAIL`/`ADMIN_SENHA`/`ADMIN_NOME` (criam o primeiro ADMIN se não houver usuários), `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`. Os testes usam o perfil `test` (`src/test/resources/application-test.yaml`).
 - Isolamento por negócio: tabelas de dados têm `negocio_id`. O endpoint declara um parâmetro `NegocioAtual`, resolvido do header `X-Negocio-Id` e validado contra `usuario_negocio` (403 sem vínculo, 400 sem header). Use cases recebem `negocioId` e **toda** consulta filtra por ele (`findByIdAndNegocioId`, nunca `findById`). `GET /api/negocio/meus` lista os negócios do usuário logado. Os negócios vêm da migration (LATICINIO, PAO_NINO).
+- Permissões nos cadastros: todos consultam. O FUNCIONARIO só cadastra e edita clientes; produtos, categorias, veículos e exclusões são só do ADMIN (regras em `SecurityConfig`). Ao criar um módulo, declarar as regras dele lá.
+- Exceções ao isolamento: `veiculo` é global (os dois negócios usam os mesmos veículos; a despesa é que escolhe o negócio). Usuário, auth e negócio também não usam `NegocioAtual`.
+- Convenções de API: REST sem verbo na URL (`POST /api/x`, `GET /api/x`, `PATCH /api/x/{id}`, `DELETE /api/x/{id}`). O PATCH é parcial (campos nulos não mudam). Listagens grandes são paginadas com `Pageable` e devolvem `PaginaDTO`. Cadastros desativáveis têm o campo `ativo`. Entidades novas estendem `EntidadeAuditavel` (datas automáticas). Busca com `like` usa `Like.escapar`. Os endpoints antigos de `/api/usuario` ainda usam verbos (`/criar`, `/listar`).
 - OpenAPI (springdoc) para gerar o cliente TS do front e do mobile.
 - PDF gerado no backend, para que o mobile reaproveite.
 - Testcontainers para testes de integração com Postgres: anotar a classe com `@IntegrationTest` e nomeá-la `*IntegrationTest` (o surefire só roda `*Test`). Requer Docker. O `testcontainers.version` está fixado em 1.21.4 por causa do Docker 29.
@@ -61,13 +64,13 @@ Nesta máquina o JDK 21 do sistema não tem `javac`. Use
 - O JWT vale até expirar (12h), mesmo se o usuário for removido. Avaliar expiração menor, refresh token ou checagem do usuário no banco.
 - Faltam endpoints para trocar e redefinir senha e para desativar conta (um ADMIN não pode ser removido pela API).
 - Isolamento por convenção: todo controller de dados de negócio deve receber `NegocioAtual`. Considerar um teste ArchUnit quando houver mais módulos.
-- Listagens ainda sem paginação.
+- A listagem de usuários ainda não é paginada (produto e cliente já são).
 
 ## Roadmap
 
 O roadmap detalhado, com status, checklist de cada etapa e decisões em aberto, está em **`docs/ROADMAP.md`**. Leia esse arquivo ao retomar o trabalho e atualize-o ao concluir cada etapa.
 
-Resumo: 1. Base ✅ → 2. Cadastros → 3. Estoque e vendas → 4. Despesas → 5. Compras → 6. Relatórios PDF e dashboard → 7. Pronto para produção (= MVP do backend) → 8. Frontend → 9. WhatsApp, mobile e Pão Nino.
+Resumo: 1. Base ✅ → 2. Cadastros ✅ → 3. Estoque e vendas → 4. Despesas → 5. Compras → 6. Relatórios PDF e dashboard → 7. Pronto para produção (= MVP do backend) → 8. Frontend → 9. WhatsApp, mobile e Pão Nino.
 
 Cada etapa sai em uma branch e um PR, com testes. Revisar com o agent `java-reviewer` (ou `react-reviewer`/`typescript-reviewer` no front) antes do PR.
 

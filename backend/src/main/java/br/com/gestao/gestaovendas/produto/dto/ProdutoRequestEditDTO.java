@@ -1,40 +1,30 @@
 package br.com.gestao.gestaovendas.produto.dto;
 
-import br.com.gestao.gestaovendas.common.enums.Categoria;
 import br.com.gestao.gestaovendas.common.enums.UnidadeMedida;
 import jakarta.validation.constraints.Digits;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.math.BigDecimal;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class ProdutoRequestEditDTO {
+/** PATCH: campos nulos ficam como estão. O código não muda. */
+public record ProdutoRequestEditDTO(
+        @Size(min = 3, max = 100, message = "Descrição deve ter entre 3 e 100 caracteres")
+        @Pattern(regexp = ".*\\S.*", message = "Descrição não pode ser vazia")
+        String descricao,
 
-    @NotBlank(message = "Descrição é obrigatória")
-    @Size(min = 3, max = 100, message = "Descrição deve ter entre 3 e 100 caracteres")
-    private String descricao;
+        Long categoriaId,
 
-    @NotNull(message = "Categoria é obrigatória")
-    private Categoria categoria;
+        UnidadeMedida unidadeMedida,
 
-    @NotNull(message = "Unidade de medida é obrigatória")
-    private UnidadeMedida unidadeMedida;
+        @PositiveOrZero(message = "Preço médio não pode ser negativo")
+        @Digits(integer = 10, fraction = 4, message = "Preço médio inválido")
+        BigDecimal precoMedio,
 
-    @NotNull(message = "Valor unitário é obrigatório")
-    @Positive(message = "Valor unitário deve ser maior que R$ 0,00")
-    @Digits(integer = 10, fraction = 4, message = "Valor unitário inválido")
-    private BigDecimal precoMedio;
+        @Size(max = 100, message = "Observação deve ter no máximo 100 caracteres")
+        String observacao,
 
-    private String observacao;
-
+        Boolean ativo
+) {
 }

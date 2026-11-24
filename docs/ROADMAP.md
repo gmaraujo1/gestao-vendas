@@ -5,7 +5,7 @@ Documento para retomar o trabalho em qualquer máquina. O `CLAUDE.md`, na raiz, 
 > **Para retomar com o Claude Code em outro PC:** clone o repositório, abra o Claude Code na raiz e diga
 > "leia o docs/ROADMAP.md e vamos continuar a próxima etapa". O `CLAUDE.md` é carregado automaticamente.
 
-Última atualização: 24/11/2026.
+Última atualização: 24/11/2026 (etapa 2).
 
 ---
 
@@ -14,8 +14,8 @@ Documento para retomar o trabalho em qualquer máquina. O `CLAUDE.md`, na raiz, 
 | # | Etapa | Status | Branch sugerida |
 |---|-------|--------|-----------------|
 | 1 | Base do backend | ✅ Concluída (PRs #7 e #8) | — |
-| 2 | Cadastros: categorias, produtos, clientes, veículos | ⏳ Próxima | `feat/cadastros` |
-| 3 | Estoque e vendas: movimentações, venda, perda, troca, ajuste | ⬜ | `feat/estoque-vendas` |
+| 2 | Cadastros: categorias, produtos, clientes, veículos | ✅ Concluída (aguardando PR) | `feat/cadastros` |
+| 3 | Estoque e vendas: movimentações, venda, perda, troca, ajuste | ⏳ Próxima | `feat/estoque-vendas` |
 | 4 | Despesas | ⬜ | `feat/despesas` |
 | 5 | Compras (custo médio) | ⬜ Depende da mãe | `feat/compras` |
 | 6 | Relatórios PDF e API do dashboard | ⬜ | `feat/relatorios` |
@@ -41,26 +41,47 @@ Regra de todas as etapas: uma branch e um PR por etapa, com testes (unitários e
 
 ---
 
-## ⏳ Etapa 2: cadastros
+## ✅ Etapa 2: cadastros (concluída)
 
-**Objetivo:** os cadastros que as outras etapas usam, todos isolados por negócio.
+Migration `V3__cadastros.sql`. Todos os endpoints de negócio exigem `X-Negocio-Id`.
 
-- [ ] **Categoria de produto** (tabela `categoria`, por negócio): CRUD. Substitui o enum fixo `Categoria` (ALIMENTOS, AÇOUGUE…), herdado de um mercado genérico.
-  - Migration com categorias iniciais do Laticínio (a confirmar).
-  - Não permitir excluir categoria que tenha produto.
-- [ ] **Produto**: adaptar o CRUD existente.
-  - `categoria_id` no lugar do enum.
-  - Paginação na listagem.
-  - Ativar/desativar em vez de excluir quando o produto já tiver movimentação.
-  - Revisar `UnidadeMedida` (UN, CX, L; talvez faltem KG e PCT).
-- [ ] **Cliente** (por negócio): nome, telefone, endereço/cidade, observação, ativo. CRUD com busca por nome. Sem login.
-- [ ] **Veículo** (por negócio ou global, a decidir): descrição (Fiorino, caminhão), placa, ativo.
-- [ ] Testes de integração com isolamento entre negócios para cada cadastro.
-
-**Perguntar aos pais antes:**
-1. Quais categorias de produto o Laticínio usa?
-2. O que guardar de cada cliente: telefone, endereço, cidade, observação?
-3. Quais unidades de medida faltam (KG, pacote, dúzia…)?
+- **Categoria** (`/api/categoria`): tabela por negócio, no lugar do enum fixo.
+  - O Laticínio já vem com Leites, Queijos, Iogurtes, Bebidas lácteas, Doces e Outros.
+  - O nome é único no negócio, sem diferenciar maiúsculas.
+  - Pode ser desativada. Não é excluída se tiver produto (409).
+- **Produto** (`/api/produto`):
+  - `categoriaId`, que precisa ser do mesmo negócio e ativa;
+  - campo `ativo`;
+  - listagem paginada (`?page=&size=&sort=`) com filtros por categoria, ativo, descrição, preço e datas;
+  - PATCH parcial;
+  - `POST /api/produto` no lugar de `/api/produto/cadastrar`.
+- **Cliente** (`/api/cliente`): nome, telefone, endereço, cidade, observação e ativo.
+  - Busca paginada por parte do nome.
+  - PATCH parcial.
+  - GET por id.
+- **Veículo** (`/api/veiculo`): **global**, sem `X-Negocio-Id`, porque os dois negócios usam os mesmos veículos.
+  - Descrição, placa (opcional, normalizada, única) e ativo.
+  - Fiorino e Caminhão já vêm cadastrados.
+  - Leitura para todos; alteração só pelo ADMIN.
+- **Permissões:**
+  - todos consultam os cadastros;
+  - o FUNCIONARIO só cadastra e edita **clientes**;
+  - produtos, categorias, veículos e qualquer exclusão são do ADMIN.
+- **Garantias no banco:** uma FK composta `(categoria_id, negocio_id)` impede produto com categoria de outro negócio, mesmo que algum use case futuro esqueça a validação.
+- **Listagens:**
+  - `?sort=` só aceita campos de uma lista (outro campo devolve 400);
+  - sempre desempatam por `id`, para a paginação não repetir nem pular registros com nome igual.
+- **PATCH:** texto vazio (`""`) limpa campos opcionais; os textos são gravados sem espaços nas pontas.
+- **Infraestrutura:**
+  - `EntidadeAuditavel` preenche `criado_em`/`atualizado_em` sozinha;
+  - `PaginaDTO` padroniza as respostas paginadas;
+  - `?sort=` inválido devolve 400.
+- **Decisões tomadas:**
+  - as unidades continuam UN, CX e L;
+  - o cliente não tem CPF;
+  - nomes de cliente podem se repetir.
+- **Fica para a etapa 3:** cliente e produto com movimentação não poderão ser excluídos, só desativados. A FK da venda garante isso.
+- 73 testes.
 
 ---
 
@@ -84,6 +105,8 @@ Regra de todas as etapas: uma branch e um PR por etapa, com testes (unitários e
   - O entregue sai (`TROCA_SAIDA`).
 - [ ] **Ajuste ("informar estoque")**: o usuário informa a contagem real e o sistema grava a diferença como `AJUSTE`.
 - [ ] **Eventos de domínio**: `VendaRegistrada`, `PerdaRegistrada`, `TrocaRegistrada` publicados com `ApplicationEventPublisher`. Sem ouvinte por enquanto; o WhatsApp vai assinar depois.
+- [ ] **Travar a edição do produto quando houver movimentação**: `unidadeMedida` não pode mudar (corromperia os saldos), e `precoMedio` deixa de ser editável à mão (passa a vir só das compras).
+- [ ] **Fuso horário**: fixar `hibernate.jdbc.time_zone` (ou usar `Clock`) antes de gravar data e hora de vendas, para os filtros por dia não fecharem errado.
 - [ ] Testes: o saldo bate depois de uma sequência de venda, perda, troca e ajuste; não há concorrência vendendo o mesmo produto; o isolamento entre negócios se mantém.
 
 ---
@@ -164,10 +187,8 @@ Itens de segurança e operação que estão pendentes desde a etapa 1. Devem fic
 | Assunto | Quem decide | Afeta |
 |---------|-------------|-------|
 | Formato do pedido ao fornecedor | Mãe | Etapa 5 |
-| Categorias, dados de cliente e unidades | Pais | Etapa 2 |
 | Venda sem cliente é permitida? | Pais | Etapa 3 |
 | O estoque pode ficar negativo? | Pais | Etapa 3 |
-| Veículo é por negócio ou global? | Pais | Etapas 2 e 4 |
 | Onde hospedar | Você | Etapa 7 |
 
 ---

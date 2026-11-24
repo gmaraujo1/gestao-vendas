@@ -1,6 +1,7 @@
 package br.com.gestao.gestaovendas.produto.repository;
 
-import br.com.gestao.gestaovendas.common.enums.Categoria;
+import br.com.gestao.gestaovendas.categoria.domain.Categoria;
+import br.com.gestao.gestaovendas.categoria.repository.CategoriaRepository;
 import br.com.gestao.gestaovendas.common.enums.UnidadeMedida;
 import br.com.gestao.gestaovendas.negocio.domain.Negocio;
 import br.com.gestao.gestaovendas.negocio.repository.NegocioRepository;
@@ -10,9 +11,9 @@ import br.com.gestao.gestaovendas.support.IntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,6 +26,9 @@ class ProdutoRepositoryIntegrationTest {
 
     @Autowired
     private NegocioRepository negocioRepository;
+
+    @Autowired
+    private CategoriaRepository categoriaRepository;
 
     private Long laticinio;
     private Long paoNino;
@@ -50,9 +54,9 @@ class ProdutoRepositoryIntegrationTest {
         produtoRepository.save(produto(laticinio, 1, "Leite integral", "4.50"));
         produtoRepository.save(produto(laticinio, 2, "Queijo minas", "32.90"));
 
-        var filtro = new ProdutoFiltroDTO(null, new BigDecimal("10"), new BigDecimal("50"),
+        var filtro = new ProdutoFiltroDTO(null, null, null, new BigDecimal("10"), new BigDecimal("50"),
                 null, null, null, null);
-        List<Produto> resultado = produtoRepository.findAll(ProdutoSpecification.comFiltros(laticinio, filtro));
+        List<Produto> resultado = produtoRepository.findAll(ProdutoSpecification.comFiltros(laticinio, filtro), Pageable.unpaged()).getContent();
 
         assertThat(resultado).extracting(Produto::getDescricao).containsExactly("Queijo minas");
     }
@@ -62,9 +66,9 @@ class ProdutoRepositoryIntegrationTest {
         produtoRepository.save(produto(laticinio, 1, "Leite integral", "4.50"));
         produtoRepository.save(produto(paoNino, 1, "Pão de queijo", "1.20"));
 
-        var semFiltro = new ProdutoFiltroDTO(null, null, null, null, null, null, null);
+        var semFiltro = ProdutoFiltroDTO.vazio();
 
-        assertThat(produtoRepository.findAll(ProdutoSpecification.comFiltros(paoNino, semFiltro)))
+        assertThat(produtoRepository.findAll(ProdutoSpecification.comFiltros(paoNino, semFiltro), Pageable.unpaged()).getContent())
                 .extracting(Produto::getDescricao).containsExactly("Pão de queijo");
     }
 
@@ -73,10 +77,20 @@ class ProdutoRepositoryIntegrationTest {
         produtoRepository.save(produto(laticinio, 1, "Leite 100% integral", "4.50"));
         produtoRepository.save(produto(laticinio, 2, "Leite 1000 ml", "4.50"));
 
-        var filtro = new ProdutoFiltroDTO("100%", null, null, null, null, null, null);
+        var filtro = new ProdutoFiltroDTO("100%", null, null, null, null, null, null, null, null);
 
-        assertThat(produtoRepository.findAll(ProdutoSpecification.comFiltros(laticinio, filtro)))
+        assertThat(produtoRepository.findAll(ProdutoSpecification.comFiltros(laticinio, filtro), Pageable.unpaged()).getContent())
                 .extracting(Produto::getDescricao).containsExactly("Leite 100% integral");
+    }
+
+    private Categoria categoriaDo(Long negocioId) {
+        return categoriaRepository.findAllByNegocioIdOrderByNomeAsc(negocioId).stream().findFirst()
+                .orElseGet(() -> {
+                    Categoria c = new Categoria();
+                    c.setNegocioId(negocioId);
+                    c.setNome("Geral");
+                    return categoriaRepository.save(c);
+                });
     }
 
     private Long idDo(String codigo) {
@@ -91,11 +105,9 @@ class ProdutoRepositoryIntegrationTest {
         p.setNegocioId(negocioId);
         p.setCodigo(codigo);
         p.setDescricao(descricao);
-        p.setCategoria(Categoria.ALIMENTOS);
+        p.setCategoria(categoriaDo(negocioId));
         p.setUnidadeMedida(UnidadeMedida.UN);
         p.setPrecoMedio(new BigDecimal(preco));
-        p.setCriadoEm(LocalDateTime.now());
-        p.setAtualizadoEm(LocalDateTime.now());
         return p;
     }
 }

@@ -1,22 +1,23 @@
 package br.com.gestao.gestaovendas.produto.application;
 
+import br.com.gestao.gestaovendas.common.text.Textos;
 import br.com.gestao.gestaovendas.exception.ResourceNotFoundException;
 import br.com.gestao.gestaovendas.produto.domain.Produto;
+import br.com.gestao.gestaovendas.produto.domain.ProdutoValidator;
 import br.com.gestao.gestaovendas.produto.dto.ProdutoRequestEditDTO;
 import br.com.gestao.gestaovendas.produto.dto.ProdutoResponseDTO;
 import br.com.gestao.gestaovendas.produto.mapper.ProdutoMapper;
 import br.com.gestao.gestaovendas.produto.repository.ProdutoRepository;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class EditarProdutoUseCase {
 
     private final ProdutoRepository produtoRepository;
+    private final ProdutoValidator produtoValidator;
     private final ProdutoMapper produtoMapper;
 
     @Transactional
@@ -25,9 +26,12 @@ public class EditarProdutoUseCase {
                 .orElseThrow(() -> new ResourceNotFoundException("Não foi possível encontrar o produto"));
 
         produtoMapper.updateEntity(produto, request);
-        produto.setAtualizadoEm(LocalDateTime.now());
-        Produto atualizado = produtoRepository.save(produto);
-
-        return produtoMapper.toResponse(atualizado);
+        // só valida quando troca: a categoria atual pode ter sido desativada depois
+        if (request.categoriaId() != null && !request.categoriaId().equals(produto.getCategoria().getId())) {
+            produto.setCategoria(produtoValidator.categoriaDoNegocio(negocioId, request.categoriaId()));
+        }
+        produto.setDescricao(produto.getDescricao().trim());
+        produto.setObservacao(Textos.limpar(produto.getObservacao()));
+        return produtoMapper.toResponse(produto);
     }
 }

@@ -39,6 +39,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/usuario/**").hasRole("ADMIN")
+                        // Cadastros: todos consultam. O FUNCIONARIO só cadastra e edita clientes;
+                        // produtos, categorias, veículos e qualquer exclusão são do ADMIN.
+                        .requestMatchers(HttpMethod.GET, "/api/produto/**", "/api/categoria/**",
+                                "/api/cliente/**", "/api/veiculo/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/cliente").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/cliente/*").authenticated()
+                        .requestMatchers("/api/produto/**", "/api/categoria/**",
+                                "/api/cliente/**", "/api/veiculo/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(o -> o.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))
                 .build();

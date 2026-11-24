@@ -1,5 +1,6 @@
 package br.com.gestao.gestaovendas.produto.repository;
 
+import br.com.gestao.gestaovendas.common.text.Like;
 import br.com.gestao.gestaovendas.produto.domain.Produto;
 import br.com.gestao.gestaovendas.produto.dto.ProdutoFiltroDTO;
 import org.springframework.data.jpa.domain.Specification;
@@ -19,6 +20,8 @@ public class ProdutoSpecification {
         return Specification
                 .where(doNegocio(negocioId))
                 .and(descricaoContem(filtro.descricao()))
+                .and(igual("categoria", "id", filtro.categoriaId()))
+                .and(ativo(filtro.ativo()))
                 .and(precoEntre(filtro.precoMinimo(), filtro.precoMaximo()))
                 .and(atualizadoEntre(filtro.atualizadoDe(), filtro.atualizadoAte()))
                 .and(criadoEntre(filtro.criadoDe(), filtro.criadoAte()));
@@ -29,12 +32,25 @@ public class ProdutoSpecification {
         return (root, query, cb) -> cb.equal(root.get("negocioId"), negocioId);
     }
 
+    private static Specification<Produto> igual(String associacao, String campo, Long valor) {
+        if (valor == null) {
+            return null;
+        }
+        return (root, query, cb) -> cb.equal(root.get(associacao).get(campo), valor);
+    }
+
+    private static Specification<Produto> ativo(Boolean ativo) {
+        if (ativo == null) {
+            return null;
+        }
+        return (root, query, cb) -> cb.equal(root.get("ativo"), ativo);
+    }
+
     private static Specification<Produto> descricaoContem(String descricao) {
         if (descricao == null || descricao.isBlank()) {
             return null;
         }
-        String escapado = descricao.toLowerCase()
-                .replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+        String escapado = Like.escapar(descricao.toLowerCase());
         String termo = "%" + escapado + "%";
         return (root, query, cb) -> cb.like(cb.lower(root.get("descricao")), termo, '\\');
     }

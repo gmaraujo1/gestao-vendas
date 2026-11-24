@@ -1,5 +1,7 @@
 package br.com.gestao.gestaovendas.negocio;
 
+import br.com.gestao.gestaovendas.categoria.domain.Categoria;
+import br.com.gestao.gestaovendas.categoria.repository.CategoriaRepository;
 import br.com.gestao.gestaovendas.common.enums.TipoUsuario;
 import br.com.gestao.gestaovendas.negocio.domain.Negocio;
 import br.com.gestao.gestaovendas.negocio.repository.NegocioRepository;
@@ -42,6 +44,8 @@ class IsolamentoNegocioIntegrationTest {
     private ProdutoRepository produtoRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private CategoriaRepository categoriaRepository;
 
     private Long laticinio;
     private Long paoNino;
@@ -79,11 +83,11 @@ class IsolamentoNegocioIntegrationTest {
 
         mockMvc.perform(comNegocio(get("/api/produto"), tokenAdmin, paoNino))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(0));
+                .andExpect(jsonPath("$.conteudo.length()").value(0));
 
         mockMvc.perform(comNegocio(get("/api/produto"), tokenAdmin, laticinio))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].descricao").value("Leite integral"));
+                .andExpect(jsonPath("$.conteudo[0].descricao").value("Leite integral"));
     }
 
     @Test
@@ -93,8 +97,7 @@ class IsolamentoNegocioIntegrationTest {
         mockMvc.perform(comNegocio(patch("/api/produto/" + id), tokenAdmin, paoNino)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"descricao": "Hackeado", "categoria": "ALIMENTOS",
-                                 "unidadeMedida": "UN", "precoMedio": 1.00}
+                                {"descricao": "Hackeado"}
                                 """))
                 .andExpect(status().isNotFound());
 
@@ -120,26 +123,37 @@ class IsolamentoNegocioIntegrationTest {
         cadastrarProduto(tokenAdmin, laticinio, 20, "Iogurte");
         cadastrarProduto(tokenAdmin, paoNino, 20, "Pão francês");
 
-        mockMvc.perform(comNegocio(post("/api/produto/cadastrar"), tokenAdmin, laticinio)
+        mockMvc.perform(comNegocio(post("/api/produto"), tokenAdmin, laticinio)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(produtoJson(20, "Repetido")))
+                        .content(produtoJson(laticinio, 20, "Repetido")))
                 .andExpect(status().isConflict());
     }
 
     private Long cadastrarProduto(String token, Long negocioId, int codigo, String descricao) throws Exception {
-        String body = mockMvc.perform(comNegocio(post("/api/produto/cadastrar"), token, negocioId)
+        String body = mockMvc.perform(comNegocio(post("/api/produto"), token, negocioId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(produtoJson(codigo, descricao)))
+                        .content(produtoJson(negocioId, codigo, descricao)))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
         return ((Number) JsonPath.read(body, "$.id")).longValue();
     }
 
-    private static String produtoJson(int codigo, String descricao) {
+    /** Usa a primeira categoria do negócio (criando "Geral" se não houver). */
+    private String produtoJson(Long negocioId, int codigo, String descricao) {
         return """
-                {"codigo": %d, "descricao": "%s", "categoria": "ALIMENTOS",
+                {"codigo": %d, "descricao": "%s", "categoriaId": %d,
                  "unidadeMedida": "UN", "precoMedio": 4.50}
-                """.formatted(codigo, descricao);
+                """.formatted(codigo, descricao, categoriaDo(negocioId));
+    }
+
+    private Long categoriaDo(Long negocioId) {
+        return categoriaRepository.findAllByNegocioIdOrderByNomeAsc(negocioId).stream().findFirst()
+                .orElseGet(() -> {
+                    Categoria c = new Categoria();
+                    c.setNegocioId(negocioId);
+                    c.setNome("Geral");
+                    return categoriaRepository.save(c);
+                }).getId();
     }
 
     private static MockHttpServletRequestBuilder comNegocio(MockHttpServletRequestBuilder req, String token, Long negocioId) {

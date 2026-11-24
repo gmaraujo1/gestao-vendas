@@ -1,6 +1,7 @@
 package br.com.gestao.gestaogastos.usuario.application;
 
 import br.com.gestao.gestaogastos.usuario.domain.Usuario;
+import br.com.gestao.gestaogastos.usuario.domain.UsuarioValidator;
 import br.com.gestao.gestaogastos.usuario.dto.UsuarioRequestDTO;
 import br.com.gestao.gestaogastos.usuario.dto.UsuarioResponseDTO;
 import br.com.gestao.gestaogastos.usuario.mapper.UsuarioMapper;
@@ -16,10 +17,13 @@ import java.time.LocalDateTime;
 public class CriarUsuarioUseCase {
 
     private final UsuarioRepository usuarioRepository;
+    private final UsuarioValidator usuarioValidator;
     private final UsuarioMapper usuarioMapper;
 
     @Transactional
     public UsuarioResponseDTO criar(UsuarioRequestDTO request) {
+        usuarioValidator.validaNomeUsuario(request.getNome());
+        usuarioValidator.validaEmailUsuario(request.getEmail());
 
         Usuario novoUsuario = usuarioMapper.toEntity(request);
         novoUsuario.setCriadoEm(LocalDateTime.now());

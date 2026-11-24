@@ -10,15 +10,17 @@ Usuários: os pais (ADMIN) e um funcionário (FUNCIONARIO). Clientes **não** ac
 
 ```
 backend/    Java 21, Spring Boot 3.5, Spring Data JPA, PostgreSQL, MapStruct, Lombok (Maven)
-frontend/   ainda vazio. Planejado: Vite + React + TS + Tailwind + shadcn/ui + TanStack Query/Table + RHF/Zod + Recharts
+frontend/   Vite 8 + React 19 + TS 5.9 + Tailwind 4 + shadcn/ui + TanStack Query/Table + RHF/Zod + Recharts + React Router (base pronta, telas a fazer; ver frontend/README.md)
 mobile/     React Native, só depois que o frontend e o backend estiverem prontos
-.claude/    skills (todas as do ECC) e agents revisores (java, database, security, react, typescript)
+.claude/    skills do ECC (sem as de outras stacks/domínios) e agents revisores (java, database, security, react, typescript)
 ```
 
 ## Comandos
 
 ```bash
 cd backend && ./mvnw test   # testes (o CI roda o mesmo em PRs para main)
+cd frontend && npm run lint && npm run build   # o CI também roda
+cd frontend && npm run gen:api   # regenera os tipos da API (backend rodando com SPRINGDOC_ENABLED=true)
 ```
 Postgres local: `cd backend && docker compose up -d` (usuário/senha padrão `gestao`; exporte `DB_USERNAME` e `DB_PASSWORD`).
 Nesta máquina o JDK 21 do sistema não tem `javac`. Use
@@ -46,12 +48,16 @@ Nesta máquina o JDK 21 do sistema não tem `javac`. Use
 - Dinheiro sempre em `BigDecimal` (`NUMERIC` no banco; custo médio com 4 casas).
 - Migrations com Flyway em `backend/src/main/resources/db/migration` (`V<n>__descricao.sql`). Nunca editar uma migration já mergeada; criar outra. O Hibernate só valida (`ddl-auto: validate`).
 - Login: `POST /api/auth/login` devolve um JWT HS256 (resource server do Spring Security). O claim `tipo` vira `ROLE_ADMIN`/`ROLE_FUNCIONARIO`; `/api/usuario/**` é só ADMIN. Senhas com BCrypt. Quem pede uma ação vem do token, **nunca do corpo da requisição**.
-- Variáveis de ambiente: `JWT_SECRET` (obrigatória, ≥ 32 bytes), `JWT_EXPIRACAO` (padrão 12h), `ADMIN_EMAIL`/`ADMIN_SENHA`/`ADMIN_NOME` (criam o primeiro ADMIN se não houver usuários), `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`. Os testes usam o perfil `test` (`src/test/resources/application-test.yaml`).
+- Variáveis de ambiente: `JWT_SECRET` (obrigatória, ≥ 32 bytes), `JWT_EXPIRACAO` (padrão 12h), `FUSO_HORARIO` (padrão America/Sao_Paulo), `SPRINGDOC_ENABLED`, `ADMIN_EMAIL`/`ADMIN_SENHA`/`ADMIN_NOME` (criam o primeiro ADMIN se não houver usuários), `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`. Os testes usam o perfil `test` (`src/test/resources/application-test.yaml`).
 - Isolamento por negócio: tabelas de dados têm `negocio_id`. O endpoint declara um parâmetro `NegocioAtual`, resolvido do header `X-Negocio-Id` e validado contra `usuario_negocio` (403 sem vínculo, 400 sem header). Use cases recebem `negocioId` e **toda** consulta filtra por ele (`findByIdAndNegocioId`, nunca `findById`). `GET /api/negocio/meus` lista os negócios do usuário logado. Os negócios vêm da migration (LATICINIO, PAO_NINO).
-- Permissões nos cadastros: todos consultam. O FUNCIONARIO só cadastra e edita clientes; produtos, categorias, veículos e exclusões são só do ADMIN (regras em `SecurityConfig`). Ao criar um módulo, declarar as regras dele lá.
+- Permissões (`SecurityConfig`): todo GET é liberado para quem está logado. O FUNCIONARIO faz POST de venda, perda, troca, despesa e cliente e PATCH de cliente. **Qualquer outra escrita em `/api/**` é só do ADMIN por padrão**; para liberar algo ao FUNCIONARIO, adicione a regra explicitamente.
+- Estoque: o saldo é **sempre a soma de `movimentacao_estoque`** (sem tabela de saldo). Toda movimentação passa pelo `MovimentacaoService.registrar`, que aplica o sinal pelo tipo; antes de gravar, o use case chama `MovimentacaoService.travar(produtoIds)`. Movimentação não é editada nem apagada: corrige-se com estorno ou ajuste. O estoque pode ficar negativo (decisão dos donos).
+- Venda guarda o custo do momento em `venda_item.custo_unitario` (base do CMV). Venda não é editada: cancela-se (estorno). Cliente obrigatório.
+- Eventos de domínio (`common/evento`): publique com `ApplicationEventPublisher` dentro da transação; ouvintes usam `@TransactionalEventListener` (depois do commit). O WhatsApp vai usar isso.
+- Datas: `LocalDateTime`/`LocalDate` no fuso do negócio (`America/Sao_Paulo`, definido no `main()` e no surefire). Use o `Clock` injetado para "agora". Filtros de período usam `Periodo` (`[de, ate]` inclusivo na API).
 - Exceções ao isolamento: `veiculo` é global (os dois negócios usam os mesmos veículos; a despesa é que escolhe o negócio). Usuário, auth e negócio também não usam `NegocioAtual`.
 - Convenções de API: REST sem verbo na URL (`POST /api/x`, `GET /api/x`, `PATCH /api/x/{id}`, `DELETE /api/x/{id}`). O PATCH é parcial (campos nulos não mudam). Listagens grandes são paginadas com `Pageable` e devolvem `PaginaDTO`. Cadastros desativáveis têm o campo `ativo`. Entidades novas estendem `EntidadeAuditavel` (datas automáticas). Busca com `like` usa `Like.escapar`. Os endpoints antigos de `/api/usuario` ainda usam verbos (`/criar`, `/listar`).
-- OpenAPI (springdoc) para gerar o cliente TS do front e do mobile.
+- OpenAPI (springdoc): `/v3/api-docs` e `/swagger-ui.html`, **desligados por padrão** (`SPRINGDOC_ENABLED=true` para ligar; ligado no perfil de teste). Endpoints com `NegocioAtual` ganham o header `X-Negocio-Id` no schema. Pageable leva `@ParameterObject`.
 - PDF gerado no backend, para que o mobile reaproveite.
 - Testcontainers para testes de integração com Postgres: anotar a classe com `@IntegrationTest` e nomeá-la `*IntegrationTest` (o surefire só roda `*Test`). Requer Docker. O `testcontainers.version` está fixado em 1.21.4 por causa do Docker 29.
 - Padrão atual por módulo: `domain/`, `application/` (um use case por ação), `controller/`, `repository/`, `dto/`, `mapper/`.
@@ -70,7 +76,7 @@ Nesta máquina o JDK 21 do sistema não tem `javac`. Use
 
 O roadmap detalhado, com status, checklist de cada etapa e decisões em aberto, está em **`docs/ROADMAP.md`**. Leia esse arquivo ao retomar o trabalho e atualize-o ao concluir cada etapa.
 
-Resumo: 1. Base ✅ → 2. Cadastros ✅ → 3. Estoque e vendas → 4. Despesas → 5. Compras → 6. Relatórios PDF e dashboard → 7. Pronto para produção (= MVP do backend) → 8. Frontend → 9. WhatsApp, mobile e Pão Nino.
+Resumo: 1. Base ✅ → 2. Cadastros ✅ → 3. Estoque e vendas ✅ → 4. Despesas ✅ → 5. Compras → 6. Relatórios PDF e dashboard → 7. Pronto para produção (= MVP do backend) → 8. Frontend (base pronta) → 9. WhatsApp, mobile e Pão Nino.
 
 Cada etapa sai em uma branch e um PR, com testes. Revisar com o agent `java-reviewer` (ou `react-reviewer`/`typescript-reviewer` no front) antes do PR.
 

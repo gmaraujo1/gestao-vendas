@@ -12,6 +12,7 @@ import br.com.gestao.gestaovendas.common.dto.PaginaDTO;
 import br.com.gestao.gestaovendas.negocio.context.NegocioAtual;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -49,7 +50,7 @@ public class ClienteController {
             NegocioAtual negocio,
             @RequestParam(required = false) String nome,
             @RequestParam(required = false) Boolean ativo,
-            @PageableDefault(sort = "nome", direction = Sort.Direction.ASC) Pageable pageable) {
+            @ParameterObject @PageableDefault(sort = "nome", direction = Sort.Direction.ASC) Pageable pageable) {
         return listarClienteUseCase.listar(negocio.id(), nome, ativo, pageable);
     }
 

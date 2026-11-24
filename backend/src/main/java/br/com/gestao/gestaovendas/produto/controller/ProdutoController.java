@@ -12,6 +12,7 @@ import br.com.gestao.gestaovendas.produto.dto.ProdutoRequestEditDTO;
 import br.com.gestao.gestaovendas.produto.dto.ProdutoResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -59,7 +60,7 @@ public class ProdutoController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate atualizadoAte,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate criadoDe,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate criadoAte,
-            @PageableDefault(sort = "descricao", direction = Sort.Direction.ASC) Pageable pageable
+            @ParameterObject @PageableDefault(sort = "descricao", direction = Sort.Direction.ASC) Pageable pageable
     ) {
         var filtro = new ProdutoFiltroDTO(descricao, categoriaId, ativo, precoMinimo, precoMaximo,
                 atualizadoDe, atualizadoAte, criadoDe, criadoAte);

@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -17,6 +19,8 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long>, JpaSpec
     boolean existsByNegocioIdAndCodigo(Long negocioId, Integer codigo);
 
     boolean existsByCategoriaId(Long categoriaId);
+
+    List<Produto> findAllByIdInAndNegocioId(Collection<Long> ids, Long negocioId);
 
     @EntityGraph(attributePaths = "categoria")
     Optional<Produto> findByIdAndNegocioId(Long id, Long negocioId);

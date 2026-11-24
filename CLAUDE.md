@@ -65,11 +65,12 @@ Nesta máquina o JDK 21 do sistema não tem `javac`. Use
 
 ## Roadmap
 
-1. Base do backend: Flyway, entidade Negócio com isolamento, BigDecimal, JWT, ajuste de nomes.
-2. Cadastros: produtos (adaptar o existente), clientes, veículos.
-3. Estoque e vendas: movimentações, vendas, perdas, trocas, ajuste.
-4. Despesas.
-5. Frontend (Vite + React) nas telas dos passos 2 a 4.
-6. Dashboard, relatórios PDF e compras (as compras dependem de confirmar o formato do pedido).
+O roadmap detalhado, com status, checklist de cada etapa e decisões em aberto, está em **`docs/ROADMAP.md`**. Leia esse arquivo ao retomar o trabalho e atualize-o ao concluir cada etapa.
+
+Resumo: 1. Base ✅ → 2. Cadastros → 3. Estoque e vendas → 4. Despesas → 5. Compras → 6. Relatórios PDF e dashboard → 7. Pronto para produção (= MVP do backend) → 8. Frontend → 9. WhatsApp, mobile e Pão Nino.
 
 Cada etapa sai em uma branch e um PR, com testes. Revisar com o agent `java-reviewer` (ou `react-reviewer`/`typescript-reviewer` no front) antes do PR.
+
+## Git
+
+**O Claude não faz commit, push nem PR**: o autor faz tudo de git. Deixe as mudanças no working tree e sugira a mensagem de commit e o texto do PR. **Nunca** adicione `Co-Authored-By: Claude` nem "Generated with Claude Code".

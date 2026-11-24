@@ -20,6 +20,19 @@ public class UsuarioValidator {
         }
     }
 
+    /** Na edição: o e-mail/nome não pode pertencer a outro usuário. */
+    public void validaEmailUsuario(String email, Long idAtual) {
+        if (usuarioRepository.existsByEmailAndIdNot(email, idAtual)) {
+            throw new ConflictException("Email já existente!");
+        }
+    }
+
+    public void validaNomeUsuario(String nome, Long idAtual) {
+        if (usuarioRepository.existsByNomeAndIdNot(nome, idAtual)) {
+            throw new ConflictException("Nome já existente!");
+        }
+    }
+
     public void validaNomeUsuario(String nome) {
         Boolean existeNome = usuarioRepository.existsByNome(nome);
         if (existeNome) {

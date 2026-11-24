@@ -68,6 +68,17 @@ class ProdutoRepositoryIntegrationTest {
                 .extracting(Produto::getDescricao).containsExactly("Pão de queijo");
     }
 
+    @Test
+    void buscaPorDescricaoTrataPorcentagemEUnderscoreComoTexto() {
+        produtoRepository.save(produto(laticinio, 1, "Leite 100% integral", "4.50"));
+        produtoRepository.save(produto(laticinio, 2, "Leite 1000 ml", "4.50"));
+
+        var filtro = new ProdutoFiltroDTO("100%", null, null, null, null, null, null);
+
+        assertThat(produtoRepository.findAll(ProdutoSpecification.comFiltros(laticinio, filtro)))
+                .extracting(Produto::getDescricao).containsExactly("Leite 100% integral");
+    }
+
     private Long idDo(String codigo) {
         return negocioRepository.findAll().stream()
                 .filter(n -> n.getCodigo().equals(codigo))

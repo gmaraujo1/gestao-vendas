@@ -1,5 +1,6 @@
 package br.com.gestao.gestaovendas.usuario.application;
 
+import br.com.gestao.gestaovendas.common.text.Emails;
 import br.com.gestao.gestaovendas.usuario.domain.Usuario;
 import br.com.gestao.gestaovendas.usuario.domain.UsuarioValidator;
 import br.com.gestao.gestaovendas.usuario.domain.VinculoNegocioService;
@@ -7,7 +8,7 @@ import br.com.gestao.gestaovendas.usuario.dto.UsuarioRequestDTO;
 import br.com.gestao.gestaovendas.usuario.dto.UsuarioResponseDTO;
 import br.com.gestao.gestaovendas.usuario.mapper.UsuarioMapper;
 import br.com.gestao.gestaovendas.usuario.repository.UsuarioRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class CriarUsuarioUseCase {
 
     @Transactional
     public UsuarioResponseDTO criar(UsuarioRequestDTO request) {
+        request.setEmail(Emails.normalizar(request.getEmail()));
         usuarioValidator.validaNomeUsuario(request.getNome());
         usuarioValidator.validaEmailUsuario(request.getEmail());
 

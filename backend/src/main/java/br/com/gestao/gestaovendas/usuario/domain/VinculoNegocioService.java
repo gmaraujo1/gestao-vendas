@@ -1,5 +1,6 @@
 package br.com.gestao.gestaovendas.usuario.domain;
 
+import br.com.gestao.gestaovendas.exception.BusinessException;
 import br.com.gestao.gestaovendas.exception.ResourceNotFoundException;
 import br.com.gestao.gestaovendas.negocio.domain.Negocio;
 import br.com.gestao.gestaovendas.negocio.repository.NegocioRepository;
@@ -21,6 +22,9 @@ public class VinculoNegocioService {
         List<Negocio> negocios = negocioRepository.findAllById(negocioIds);
         if (negocios.size() != negocioIds.size()) {
             throw new ResourceNotFoundException("Negócio não encontrado");
+        }
+        if (negocios.stream().anyMatch(n -> !n.isAtivo())) {
+            throw new BusinessException("Não é possível vincular um negócio inativo");
         }
         usuario.setNegocios(new HashSet<>(negocios));
     }

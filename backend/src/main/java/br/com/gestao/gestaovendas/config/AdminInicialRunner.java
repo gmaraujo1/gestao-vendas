@@ -1,6 +1,7 @@
 package br.com.gestao.gestaovendas.config;
 
 import br.com.gestao.gestaovendas.common.enums.TipoUsuario;
+import br.com.gestao.gestaovendas.common.text.Emails;
 import br.com.gestao.gestaovendas.negocio.repository.NegocioRepository;
 import br.com.gestao.gestaovendas.usuario.domain.Usuario;
 import br.com.gestao.gestaovendas.usuario.repository.UsuarioRepository;
@@ -41,7 +42,7 @@ public class AdminInicialRunner implements ApplicationRunner {
         }
         Usuario admin = new Usuario();
         admin.setNome(props.nome());
-        admin.setEmail(props.email());
+        admin.setEmail(Emails.normalizar(props.email()));
         admin.setSenha(passwordEncoder.encode(props.senha()));
         admin.setTipoUsuario(TipoUsuario.ADMIN);
         admin.setNegocios(new HashSet<>(negocioRepository.findAll()));

@@ -2,6 +2,7 @@ package br.com.gestao.gestaovendas.common.mapper;
 
 import org.mapstruct.MapperConfig;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 
 /**
@@ -10,7 +11,9 @@ import org.mapstruct.ReportingPolicy;
  */
 @MapperConfig(
         componentModel = MappingConstants.ComponentModel.SPRING,
-        unmappedTargetPolicy = ReportingPolicy.ERROR
+        unmappedTargetPolicy = ReportingPolicy.ERROR,
+        // PATCH: campo ausente (null) no DTO mantém o valor atual da entidade
+        nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
 )
 public interface MapStructConfig {
 }

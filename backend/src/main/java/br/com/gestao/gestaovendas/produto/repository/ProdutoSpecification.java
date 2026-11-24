@@ -33,8 +33,10 @@ public class ProdutoSpecification {
         if (descricao == null || descricao.isBlank()) {
             return null;
         }
-        String termo = "%" + descricao.toLowerCase() + "%";
-        return (root, query, cb) -> cb.like(cb.lower(root.get("descricao")), termo);
+        String escapado = descricao.toLowerCase()
+                .replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+        String termo = "%" + escapado + "%";
+        return (root, query, cb) -> cb.like(cb.lower(root.get("descricao")), termo, '\\');
     }
 
     private static Specification<Produto> precoEntre(BigDecimal min, BigDecimal max) {

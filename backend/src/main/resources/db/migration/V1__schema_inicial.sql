@@ -8,9 +8,10 @@ CREATE TABLE usuario (
     tipo          VARCHAR(20)  NOT NULL,
     criado_em     TIMESTAMP(3) NOT NULL DEFAULT now(),
     atualizado_em TIMESTAMP(3) NOT NULL DEFAULT now(),
-    CONSTRAINT uk_usuario_email UNIQUE (email),
     CONSTRAINT ck_usuario_tipo CHECK (tipo IN ('ADMIN', 'FUNCIONARIO'))
 );
+-- A aplicação já grava o e-mail em minúsculas; o índice garante isso no banco também.
+CREATE UNIQUE INDEX uk_usuario_email ON usuario (lower(email));
 
 CREATE TABLE produto (
     id            BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

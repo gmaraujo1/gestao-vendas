@@ -14,6 +14,4 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long>, JpaSpec
 
     Optional<Produto> findByIdAndNegocioId(Long id, Long negocioId);
 
-    boolean existsByIdAndNegocioId(Long id, Long negocioId);
-
 }

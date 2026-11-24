@@ -54,6 +54,15 @@ Nesta máquina o JDK 21 do sistema não tem `javac`. Use
 - Padrão atual por módulo: `domain/`, `application/` (um use case por ação), `controller/`, `repository/`, `dto/`, `mapper/`.
 - Pacote base `br.com.gestao.gestaovendas`, artefato `gestao-vendas`, banco `gestao_vendas`.
 
+## Pendências conhecidas
+
+- Banco: a V1 parte de um banco vazio (`gestao_vendas`). Um banco antigo com tabelas criadas à mão precisa ser recriado.
+- Antes de expor a API na internet: limitar tentativas de login (no proxy ou na aplicação) e usar HTTPS.
+- O JWT vale até expirar (12h), mesmo se o usuário for removido. Avaliar expiração menor, refresh token ou checagem do usuário no banco.
+- Faltam endpoints para trocar e redefinir senha e para desativar conta (um ADMIN não pode ser removido pela API).
+- Isolamento por convenção: todo controller de dados de negócio deve receber `NegocioAtual`. Considerar um teste ArchUnit quando houver mais módulos.
+- Listagens ainda sem paginação.
+
 ## Roadmap
 
 1. Base do backend: Flyway, entidade Negócio com isolamento, BigDecimal, JWT, ajuste de nomes.

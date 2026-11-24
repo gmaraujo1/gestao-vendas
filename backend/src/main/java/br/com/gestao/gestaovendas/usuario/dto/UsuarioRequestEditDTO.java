@@ -1,6 +1,7 @@
 package br.com.gestao.gestaovendas.usuario.dto;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,6 +24,6 @@ public class UsuarioRequestEditDTO {
 
     /** Opcional: quando vier, substitui os negócios do usuário. */
     @Size(min = 1, message = "Informe ao menos um negócio")
-    private Set<Long> negocioIds;
+    private Set<@NotNull Long> negocioIds;
 
 }

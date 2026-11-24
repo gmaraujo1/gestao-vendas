@@ -7,6 +7,7 @@ import br.com.gestao.gestaovendas.produto.repository.ProdutoRepository;
 import br.com.gestao.gestaovendas.produto.repository.ProdutoSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,6 +18,7 @@ public class ListarProdutoUseCase {
     private final ProdutoRepository produtoRepository;
     private final ProdutoMapper produtoMapper;
 
+    @Transactional(readOnly = true)
     public List<ProdutoResponseDTO> listar(Long negocioId, ProdutoFiltroDTO filtro) {
         return produtoRepository.findAll(ProdutoSpecification.comFiltros(negocioId, filtro))
                 .stream()

@@ -6,7 +6,7 @@ import br.com.gestao.gestaovendas.produto.dto.ProdutoRequestEditDTO;
 import br.com.gestao.gestaovendas.produto.dto.ProdutoResponseDTO;
 import br.com.gestao.gestaovendas.produto.mapper.ProdutoMapper;
 import br.com.gestao.gestaovendas.produto.repository.ProdutoRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

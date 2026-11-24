@@ -75,7 +75,7 @@ class UsuarioControllerTest {
                 {
                     "nome": "João da Silva",
                     "email": "joao@email.com",
-                    "senha": "123456",
+                    "senha": "12345678",
                     "tipoUsuario": "FUNCIONARIO",
                     "negocioIds": [1]
                 }

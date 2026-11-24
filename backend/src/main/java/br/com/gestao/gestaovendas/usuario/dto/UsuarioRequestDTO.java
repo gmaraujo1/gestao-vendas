@@ -28,12 +28,12 @@ public class UsuarioRequestDTO {
     private String email;
 
     @NotBlank(message = "Senha é obrigatória")
-    @Size(min = 5, max = 100, message = "Senha deve ter entre 5 e 100 caracteres")
+    @Size(min = 8, max = 100, message = "Senha deve ter entre 8 e 100 caracteres")
     private String senha;
 
     @NotNull(message = "Tipo de usuário é obrigatório")
     private TipoUsuario tipoUsuario;
 
     @NotEmpty(message = "Informe ao menos um negócio")
-    private Set<Long> negocioIds;
+    private Set<@NotNull Long> negocioIds;
 }

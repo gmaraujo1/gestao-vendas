@@ -4,7 +4,7 @@ import br.com.gestao.gestaovendas.exception.ResourceNotFoundException;
 import br.com.gestao.gestaovendas.usuario.domain.Usuario;
 import br.com.gestao.gestaovendas.usuario.domain.UsuarioValidator;
 import br.com.gestao.gestaovendas.usuario.repository.UsuarioRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

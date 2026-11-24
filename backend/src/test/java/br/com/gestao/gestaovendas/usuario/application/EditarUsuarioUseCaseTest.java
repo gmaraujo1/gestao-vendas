@@ -1,6 +1,7 @@
 package br.com.gestao.gestaovendas.usuario.application;
 
 import br.com.gestao.gestaovendas.usuario.domain.Usuario;
+import br.com.gestao.gestaovendas.usuario.domain.UsuarioValidator;
 import br.com.gestao.gestaovendas.usuario.domain.VinculoNegocioService;
 import br.com.gestao.gestaovendas.usuario.dto.UsuarioRequestEditDTO;
 import br.com.gestao.gestaovendas.usuario.dto.UsuarioResponseDTO;
@@ -29,6 +30,9 @@ class EditarUsuarioUseCaseTest {
 
     @Mock
     private VinculoNegocioService vinculoNegocioService;
+
+    @Mock
+    private UsuarioValidator usuarioValidator;
 
     @InjectMocks
     private EditarUsuarioUseCase editarUsuarioUseCase;

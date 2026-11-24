@@ -13,11 +13,11 @@
 	</parent>
 
 	<groupId>br.com.gestao</groupId>
-	<artifactId>gestao-produtos</artifactId>
+	<artifactId>gestao-vendas</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
-	<name>gestao-produtos</name>
-	<description>Sistema de gestão de produtos</description>
+	<name>gestao-vendas</name>
+	<description>Sistema de gestão de vendas, estoque e despesas</description>
 
 	<properties>
 		<java.version>21</java.version>

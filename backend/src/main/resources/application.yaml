@@ -1,9 +1,9 @@
 spring:
   application:
-    name: gestao-produtos
+    name: gestao-vendas
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/gestao_produtos
+    url: jdbc:postgresql://localhost:5432/gestao_vendas
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 

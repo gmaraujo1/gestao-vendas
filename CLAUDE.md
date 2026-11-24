@@ -48,7 +48,7 @@ Nesta máquina o JDK 21 do sistema não tem `javac`. Use
 - PDF gerado no backend, para que o mobile reaproveite.
 - Testcontainers para testes de integração com Postgres.
 - Padrão atual por módulo: `domain/`, `application/` (um use case por ação), `controller/`, `repository/`, `dto/`, `mapper/`.
-- Pendências de nome: o pacote é `gestaogastos` e o artefato é `gestao-produtos`; padronizar para gestao-vendas.
+- Pacote base `br.com.gestao.gestaovendas`, artefato `gestao-vendas`, banco `gestao_vendas`.
 
 ## Roadmap
 

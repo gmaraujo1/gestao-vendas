@@ -1,7 +1,7 @@
 import createClient, { type Middleware } from 'openapi-fetch'
 import type { paths } from '@/lib/api/schema'
 import { ApiError, paraApiError } from '@/lib/api/erros'
-import { lerLogin, lerNegocioId } from '@/lib/sessao'
+import { negocioAtualId, tokenAtual } from '@/lib/sessao'
 
 /**
  * Cliente tipado da API, gerado a partir do OpenAPI do backend (npm run gen:api).
@@ -21,19 +21,27 @@ export function aoExpirarSessao(callback: () => void) {
   aoExpirar = callback
 }
 
+/** Token com que cada requisição saiu: um 401 atrasado de uma sessão antiga não derruba a nova. */
+const tokenDaRequisicao = new WeakMap<Request, string>()
+
 const autenticacao: Middleware = {
   onRequest({ request }) {
-    const login = lerLogin()
-    if (login?.token) request.headers.set('Authorization', `Bearer ${login.token}`)
-    const negocioId = lerNegocioId()
-    if (negocioId != null) request.headers.set('X-Negocio-Id', String(negocioId))
+    const token = tokenAtual()
+    if (token) {
+      request.headers.set('Authorization', `Bearer ${token}`)
+      tokenDaRequisicao.set(request, token)
+    }
+    // quem passa doNegocio() explicitamente (tipos gerados) tem prioridade
+    const negocioId = negocioAtualId()
+    if (negocioId != null && !request.headers.has('X-Negocio-Id')) {
+      request.headers.set('X-Negocio-Id', String(negocioId))
+    }
     return request
   },
   onResponse({ response, request }) {
-    // 401 no login é só senha errada; em qualquer outra chamada é sessão vencida
-    if (response.status === 401 && new URL(request.url).pathname !== '/api/auth/login') {
-      aoExpirar()
-    }
+    // 401 no login é só senha errada; nas outras, sessão vencida (se ainda for a sessão atual)
+    const token = tokenDaRequisicao.get(request)
+    if (response.status === 401 && token && token === tokenAtual()) aoExpirar()
     return response
   },
 }
@@ -58,4 +66,13 @@ export async function dados<T>(promessa: Resposta<T>): Promise<T> {
 export async function semConteudo(promessa: Resposta<unknown>): Promise<void> {
   const { error, response } = await promessa
   if (!response.ok) throw paraApiError(response.status, error)
+}
+
+/**
+ * Header do negócio para os tipos gerados (o OpenAPI marca X-Negocio-Id como obrigatório).
+ * O middleware também o envia; passá-lo explicitamente deixa a chamada e a queryKey coerentes.
+ *   api.GET('/api/produto', { params: { header: doNegocio(negocioId), query: {...} } })
+ */
+export function doNegocio(negocioId: number) {
+  return { 'X-Negocio-Id': negocioId }
 }

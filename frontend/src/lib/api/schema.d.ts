@@ -340,6 +340,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/relatorio/lucro": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["lucro"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/relatorio/lucro/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["lucroPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/negocio/meus": {
         parameters: {
             query?: never;
@@ -396,6 +428,54 @@ export interface paths {
             cookie?: never;
         };
         get: operations["resumo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dashboard/serie": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["serie"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dashboard/produtos-mais-vendidos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["produtosMaisVendidos"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dashboard/perdas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["perdas"];
         put?: never;
         post?: never;
         delete?: never;
@@ -750,6 +830,73 @@ export interface components {
             clienteNome?: string;
             observacao?: string;
         };
+        PerdaPorMotivoDTO: {
+            /** @enum {string} */
+            motivo?: "FURADO" | "VENCIDO" | "AVARIADO" | "OUTRO";
+            /** Format: int64 */
+            registros?: number;
+            custo?: number;
+        };
+        PontoSerieDTO: {
+            /** Format: date */
+            inicio?: string;
+            /** Format: date */
+            fim?: string;
+            /** Format: int64 */
+            numeroVendas?: number;
+            vendas?: number;
+            cmv?: number;
+            lucroBruto?: number;
+            despesas?: number;
+            resultado?: number;
+            perdas?: number;
+            resultadoComPerdas?: number;
+        };
+        PorTipo: {
+            /** @enum {string} */
+            tipo?: "GASOLINA" | "PEDAGIO" | "PNEU" | "MECANICA" | "OUTROS";
+            total?: number;
+        };
+        ProdutoVendidoDTO: {
+            /** Format: int64 */
+            produtoId?: number;
+            /** Format: int32 */
+            codigo?: number;
+            descricao?: string;
+            /** @enum {string} */
+            unidadeMedida?: "UN" | "CX" | "L";
+            quantidade?: number;
+            vendas?: number;
+            cmv?: number;
+            lucroBruto?: number;
+        };
+        RelatorioLucroDTO: {
+            /** @enum {string} */
+            periodo?: "DIA" | "SEMANA" | "QUINZENA" | "MES" | "TRIMESTRE" | "SEMESTRE" | "ANO";
+            descricaoPeriodo?: string;
+            /** Format: date */
+            de?: string;
+            /** Format: date */
+            ate?: string;
+            resultado?: components["schemas"]["ResultadoDTO"];
+            /** @enum {string} */
+            agrupamento?: "DIA" | "SEMANA" | "QUINZENA" | "MES" | "TRIMESTRE" | "SEMESTRE" | "ANO";
+            detalhamento?: components["schemas"]["PontoSerieDTO"][];
+            despesasPorTipo?: components["schemas"]["PorTipo"][];
+            perdasPorMotivo?: components["schemas"]["PerdaPorMotivoDTO"][];
+            produtosMaisVendidos?: components["schemas"]["ProdutoVendidoDTO"][];
+        };
+        ResultadoDTO: {
+            /** Format: int64 */
+            numeroVendas?: number;
+            vendas?: number;
+            cmv?: number;
+            lucroBruto?: number;
+            despesas?: number;
+            resultado?: number;
+            perdas?: number;
+            resultadoComPerdas?: number;
+        };
         PaginaDTOProdutoResponseDTO: {
             conteudo?: components["schemas"]["ProdutoResponseDTO"][];
             /** Format: int32 */
@@ -819,11 +966,6 @@ export interface components {
             /** Format: int32 */
             totalPaginas?: number;
         };
-        PorTipo: {
-            /** @enum {string} */
-            tipo?: "GASOLINA" | "PEDAGIO" | "PNEU" | "MECANICA" | "OUTROS";
-            total?: number;
-        };
         PorVeiculo: {
             /** Format: int64 */
             veiculoId?: number;
@@ -838,6 +980,36 @@ export interface components {
             total?: number;
             porTipo?: components["schemas"]["PorTipo"][];
             porVeiculo?: components["schemas"]["PorVeiculo"][];
+        };
+        SerieDTO: {
+            /** Format: date */
+            de?: string;
+            /** Format: date */
+            ate?: string;
+            /** @enum {string} */
+            agrupamento?: "DIA" | "SEMANA" | "QUINZENA" | "MES" | "TRIMESTRE" | "SEMESTRE" | "ANO";
+            pontos?: components["schemas"]["PontoSerieDTO"][];
+            total?: components["schemas"]["ResultadoDTO"];
+        };
+        PerdaPorProdutoDTO: {
+            /** Format: int64 */
+            produtoId?: number;
+            /** Format: int32 */
+            codigo?: number;
+            descricao?: string;
+            /** @enum {string} */
+            unidadeMedida?: "UN" | "CX" | "L";
+            quantidade?: number;
+            custo?: number;
+        };
+        ResumoPerdasDTO: {
+            /** Format: date */
+            de?: string;
+            /** Format: date */
+            ate?: string;
+            custoTotal?: number;
+            porMotivo?: components["schemas"]["PerdaPorMotivoDTO"][];
+            porProduto?: components["schemas"]["PerdaPorProdutoDTO"][];
         };
         PaginaDTOClienteResponseDTO: {
             conteudo?: components["schemas"]["ClienteResponseDTO"][];
@@ -1827,6 +1999,70 @@ export interface operations {
             };
         };
     };
+    lucro: {
+        parameters: {
+            query?: {
+                /** @description Período de calendário que contém a data */
+                periodo?: "DIA" | "SEMANA" | "QUINZENA" | "MES" | "TRIMESTRE" | "SEMESTRE" | "ANO";
+                /** @description Data de referência do período (padrão: hoje) */
+                data?: string;
+                /** @description Início do intervalo livre (inclusivo) */
+                de?: string;
+                /** @description Fim do intervalo livre (inclusivo) */
+                ate?: string;
+            };
+            header: {
+                /** @description Id do negócio ativo (GET /api/negocio/meus) */
+                "X-Negocio-Id": number;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RelatorioLucroDTO"];
+                };
+            };
+        };
+    };
+    lucroPdf: {
+        parameters: {
+            query?: {
+                /** @description Período de calendário que contém a data */
+                periodo?: "DIA" | "SEMANA" | "QUINZENA" | "MES" | "TRIMESTRE" | "SEMESTRE" | "ANO";
+                /** @description Data de referência do período (padrão: hoje) */
+                data?: string;
+                /** @description Início do intervalo livre (inclusivo) */
+                de?: string;
+                /** @description Fim do intervalo livre (inclusivo) */
+                ate?: string;
+            };
+            header: {
+                /** @description Id do negócio ativo (GET /api/negocio/meus) */
+                "X-Negocio-Id": number;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+        };
+    };
     meusNegocios: {
         parameters: {
             query?: never;
@@ -1934,6 +2170,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ResumoDespesasDTO"];
+                };
+            };
+        };
+    };
+    serie: {
+        parameters: {
+            query?: {
+                /** @description Período de calendário que contém a data */
+                periodo?: "DIA" | "SEMANA" | "QUINZENA" | "MES" | "TRIMESTRE" | "SEMESTRE" | "ANO";
+                /** @description Data de referência do período (padrão: hoje) */
+                data?: string;
+                /** @description Início do intervalo livre (inclusivo) */
+                de?: string;
+                /** @description Fim do intervalo livre (inclusivo) */
+                ate?: string;
+                agrupamento?: "DIA" | "SEMANA" | "QUINZENA" | "MES" | "TRIMESTRE" | "SEMESTRE" | "ANO";
+            };
+            header: {
+                /** @description Id do negócio ativo (GET /api/negocio/meus) */
+                "X-Negocio-Id": number;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SerieDTO"];
+                };
+            };
+        };
+    };
+    produtosMaisVendidos: {
+        parameters: {
+            query?: {
+                /** @description Período de calendário que contém a data */
+                periodo?: "DIA" | "SEMANA" | "QUINZENA" | "MES" | "TRIMESTRE" | "SEMESTRE" | "ANO";
+                /** @description Data de referência do período (padrão: hoje) */
+                data?: string;
+                /** @description Início do intervalo livre (inclusivo) */
+                de?: string;
+                /** @description Fim do intervalo livre (inclusivo) */
+                ate?: string;
+                criterio?: "QUANTIDADE" | "VENDAS" | "LUCRO";
+                limite?: number;
+            };
+            header: {
+                /** @description Id do negócio ativo (GET /api/negocio/meus) */
+                "X-Negocio-Id": number;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProdutoVendidoDTO"][];
+                };
+            };
+        };
+    };
+    perdas: {
+        parameters: {
+            query?: {
+                /** @description Período de calendário que contém a data */
+                periodo?: "DIA" | "SEMANA" | "QUINZENA" | "MES" | "TRIMESTRE" | "SEMESTRE" | "ANO";
+                /** @description Data de referência do período (padrão: hoje) */
+                data?: string;
+                /** @description Início do intervalo livre (inclusivo) */
+                de?: string;
+                /** @description Fim do intervalo livre (inclusivo) */
+                ate?: string;
+                limite?: number;
+            };
+            header: {
+                /** @description Id do negócio ativo (GET /api/negocio/meus) */
+                "X-Negocio-Id": number;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResumoPerdasDTO"];
                 };
             };
         };

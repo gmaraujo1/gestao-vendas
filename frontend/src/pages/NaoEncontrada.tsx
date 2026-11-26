@@ -1,12 +1,21 @@
+import { SearchX } from 'lucide-react'
 import { Link } from 'react-router'
+import { EstadoVazio } from '@/components/estados/EstadoVazio'
+import { Button } from '@/components/ui/button'
 
 export function NaoEncontrada() {
   return (
-    <main className="mx-auto flex min-h-svh max-w-xl flex-col justify-center gap-3 p-6">
-      <h1 className="font-heading text-2xl font-semibold">Página não encontrada</h1>
-      <Link to="/" className="text-primary underline-offset-4 hover:underline">
-        Voltar ao início
-      </Link>
+    <main className="grid min-h-svh place-items-center">
+      <EstadoVazio
+        icone={SearchX}
+        titulo="Página não encontrada"
+        descricao="O endereço não existe ou mudou de lugar."
+        acao={
+          <Button asChild size="lg">
+            <Link to="/">Voltar ao início</Link>
+          </Button>
+        }
+      />
     </main>
   )
 }

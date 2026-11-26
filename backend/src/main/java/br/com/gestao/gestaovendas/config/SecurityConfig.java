@@ -41,6 +41,9 @@ public class SecurityConfig {
                         // documentação da API: só existe com SPRINGDOC_ENABLED=true (desligada por padrão)
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api/usuario/**").hasRole("ADMIN")
+                        // lucro, custos e resultado do negócio: só os donos (decisão em aberto no ROADMAP,
+                        // etapa 7; para liberar ao FUNCIONARIO, basta tirar esta linha)
+                        .requestMatchers("/api/relatorio/**", "/api/dashboard/**").hasRole("ADMIN")
                         // Regras de permissão (ver CLAUDE.md). Todo GET de dados é liberado para quem
                         // está logado; o FUNCIONARIO registra vendas, perdas, trocas e despesas e
                         // cadastra/edita clientes. O resto (cadastros, cancelamento, ajuste,

@@ -5,7 +5,7 @@ Documento para retomar o trabalho em qualquer máquina. O `CLAUDE.md`, na raiz, 
 > **Para retomar com o Claude Code em outro PC:** clone o repositório, abra o Claude Code na raiz e diga
 > "leia o docs/ROADMAP.md e vamos continuar a próxima etapa". O `CLAUDE.md` é carregado automaticamente.
 
-Última atualização: 24/11/2026 (etapas 3 e 4 e base do frontend).
+Última atualização: 26/11/2026 (etapa 6: relatórios PDF e API do dashboard).
 
 ---
 
@@ -15,10 +15,10 @@ Documento para retomar o trabalho em qualquer máquina. O `CLAUDE.md`, na raiz, 
 |---|-------|--------|-----------------|
 | 1 | Base do backend | ✅ Concluída (PRs #7 e #8) | — |
 | 2 | Cadastros: categorias, produtos, clientes, veículos | ✅ Concluída (PR #10) | — |
-| 3 | Estoque e vendas: movimentações, venda, perda, troca, ajuste | ✅ Concluída (aguardando PR) | `feat/estoque-vendas-despesas` |
-| 4 | Despesas | ✅ Concluída (mesmo PR da 3) | `feat/estoque-vendas-despesas` |
-| 5 | Compras (custo médio) | ⏳ Próxima no backend; depende da mãe | `feat/compras` |
-| 6 | Relatórios PDF e API do dashboard | ⬜ | `feat/relatorios` |
+| 3 | Estoque e vendas: movimentações, venda, perda, troca, ajuste | ✅ Concluída (PR #11) | — |
+| 4 | Despesas | ✅ Concluída (PR #11) | — |
+| 5 | Compras (custo médio) | ⏳ Próxima no backend; perguntas enviadas à mãe | `feat/compras` |
+| 6 | Relatórios PDF e API do dashboard | ✅ Concluída (aguardando PR) | `feat/relatorios` |
 | 7 | Pronto para produção | ⬜ | `chore/producao` |
 | | **→ MVP do backend concluído** | | |
 | 8 | Frontend (Vite + React) | ⏳ Base configurada; telas a fazer | `feat/frontend-*` |
@@ -153,24 +153,34 @@ Migration `V4__estoque_vendas_despesas.sql`.
 
 ---
 
-## Etapa 6: relatórios PDF e API do dashboard
+## ✅ Etapa 6: relatórios PDF e API do dashboard (concluída)
 
-- [ ] **Cálculo de lucro/prejuízo** por período: vendas − CMV (custo das mercadorias vendidas, pelo custo guardado em cada item de venda) − despesas. Perdas aparecem à parte (custo das perdas).
-- [ ] Períodos: dia, semana, quinzena, mês, trimestre, semestre e ano (e um intervalo livre).
-- [ ] **PDF gerado no backend**, por exemplo com OpenPDF ou JasperReports, para o mobile reaproveitar: `GET /api/relatorio/lucro?periodo=MES&data=...`
-- [ ] **Endpoints do dashboard**, em JSON para o Recharts:
-  - vendas por dia;
-  - compras;
-  - despesas por tipo;
-  - lucro por período;
-  - produtos mais vendidos;
-  - perdas.
-- [ ] Testes com dados conhecidos, conferindo o valor do lucro.
+Sem migration nova: tudo sai do que as etapas 3 e 4 já gravam. Módulo `relatorio/`.
 
-**Regras de custo já gravadas (etapa 3), para usar nos relatórios:**
-- CMV = Σ (`venda_item.quantidade × custo_unitario`) das vendas `REGISTRADA`. Venda cancelada sai do cálculo, e o estorno usa o mesmo custo da venda.
-- Custo das perdas = Σ (|quantidade| × `custo_unitario`) das movimentações `PERDA` (avulsas e de trocas).
-- Despesas = Σ `despesa.valor` no período (por `data`).
+**Período** (igual em todos os endpoints):
+- `?periodo=DIA|SEMANA|QUINZENA|MES|TRIMESTRE|SEMESTRE|ANO&data=2026-11-10` (sem `data` = hoje);
+- ou intervalo livre `?de=2026-11-01&ate=2026-11-20` (inclusivo, até 5 anos);
+- semana de segunda a domingo; quinzena 1–15 e 16–fim do mês; trimestres e semestres alinhados ao ano.
+
+**Cálculo** (`RelatorioRepository`, SQL nativo agregado por dia e somado em Java nas faixas):
+- vendas = Σ subtotais das vendas `REGISTRADA` (a cancelada sai inteira);
+- CMV = Σ (`quantidade × custo_unitario`) de cada item, **arredondado por item** para a soma dos dias bater com o total;
+- lucro bruto = vendas − CMV; **resultado = lucro bruto − despesas** (positivo = lucro, negativo = prejuízo);
+- perdas = Σ (|quantidade| × `custo_unitario`) das movimentações `PERDA` (avulsas e de trocas), mostradas à parte e também em `resultadoComPerdas`.
+
+**Endpoints** (todos **só ADMIN**: lucro e custos são dos donos; ver decisão em aberto na etapa 7):
+- `GET /api/relatorio/lucro`: resumo, detalhamento (por dia até 31 dias, por semana até 62, por mês até 2 anos), despesas por tipo, perdas por motivo e os 10 produtos que mais venderam (por valor);
+- `GET /api/relatorio/lucro/pdf`: o mesmo em PDF A4 (OpenPDF), com `Content-Disposition` `lucro-laticinio-2026-11-01_2026-11-30.pdf`. No papel, as faixas sem lançamento são omitidas;
+- `GET /api/dashboard/serie?agrupamento=`: pontos zerados inclusive, para o Recharts (máx. 400 pontos);
+- `GET /api/dashboard/produtos-mais-vendidos?criterio=QUANTIDADE|VENDAS|LUCRO&limite=10`;
+- `GET /api/dashboard/perdas`: custo por motivo e os produtos que mais se perderam;
+- despesas por tipo e por veículo continuam em `GET /api/despesa/resumo`.
+
+**Fica para depois:**
+- gráfico de compras (etapa 5);
+- custo líquido das trocas (produto entregue com custo diferente do devolvido) e o valor dos ajustes de contagem ainda não entram no resultado.
+
+128 testes (cenário com valores conhecidos: venda cancelada, troca com perda, isolamento entre negócios, PDF lido de volta).
 
 ---
 
@@ -184,7 +194,7 @@ Itens de segurança e operação que estão pendentes desde a etapa 1. Devem fic
 - [ ] **Desativar conta** (flag `ativo`) e invalidar o token de usuário desativado (checar no banco ou reduzir a expiração e usar refresh token).
 - [ ] **Teste de arquitetura (ArchUnit)**: todo controller de dados de negócio recebe `NegocioAtual`.
 - [ ] **Perfil de produção**: logs, `show-sql` desligado, CORS só para o domínio do front (em dev o proxy do Vite dispensa CORS).
-- [ ] **Permissão de leitura**: hoje o FUNCIONARIO enxerga custos (`precoMedio`, `custoUnitario`) e totais de despesa. Decidir se isso fica só com o ADMIN.
+- [ ] **Permissão de leitura**: hoje o FUNCIONARIO enxerga custos (`precoMedio`, `custoUnitario`) e totais de despesa. Decidir se isso fica só com o ADMIN. (Relatórios e dashboard já são só do ADMIN desde a etapa 6.)
 - [ ] **Empacotamento**: Dockerfile do backend e `compose` de produção (backend + Postgres, com volume).
 - [ ] **Backup do banco** (pg_dump agendado) e teste de restauração.
 - [ ] **Deploy**: onde hospedar (VPS barata, Railway, Render…), HTTPS (Caddy/nginx) e variáveis de ambiente.
@@ -209,7 +219,8 @@ Itens de segurança e operação que estão pendentes desde a etapa 1. Devem fic
 - [ ] Venda rápida (busca de cliente e produto, itens, total), lista de vendas e cancelamento.
 - [ ] Estoque (saldos e extrato), ajuste, perda e troca.
 - [ ] Despesas e resumo.
-- [ ] Depois: compras, dashboard e download dos PDFs.
+- [ ] Dashboard (`/api/dashboard/*`) e download do PDF (`/api/relatorio/lucro/pdf`).
+- [ ] Depois: compras.
 
 ## Etapa 9: depois do MVP
 

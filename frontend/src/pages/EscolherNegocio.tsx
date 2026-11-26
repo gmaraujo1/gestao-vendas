@@ -92,7 +92,7 @@ export function EscolherNegocio() {
                   <button
                     type="button"
                     onClick={() => n.id != null && abrir(n.id, n.codigo)}
-                    className="group flex w-full items-center gap-4 overflow-hidden rounded-3xl border bg-card p-4 text-left text-card-foreground shadow-sm transition-all outline-none hover:border-primary/40 focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.98]"
+                    className="group flex w-full items-center gap-4 overflow-hidden rounded-3xl border bg-card p-4 text-left text-card-foreground shadow-sm transition-[background-color,border-color,color,box-shadow,transform,opacity] outline-none hover:border-primary/40 focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.98]"
                   >
                     <LogoNegocio marca={marca} tamanho="md" />
                     <span className="min-w-0 flex-1">

@@ -19,6 +19,9 @@ class OpenApiIntegrationTest extends ApiIntegrationTest {
                 .andExpect(jsonPath("$.paths['/api/produto'].get.parameters[*].name").value(hasItem("page")))
                 .andExpect(jsonPath("$.paths['/api/veiculo'].get.parameters[*].name")
                         .value(org.hamcrest.Matchers.not(hasItem("X-Negocio-Id"))))
-                .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.scheme").value("bearer"));
+                .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.scheme").value("bearer"))
+                // records aninhados com o mesmo nome (Item) não podem se sobrescrever no schema
+                .andExpect(jsonPath("$.components.schemas.VendaItemRequestDTO.properties.precoUnitario").exists())
+                .andExpect(jsonPath("$.components.schemas.VendaItemResponseDTO.properties.produtoDescricao").exists());
     }
 }

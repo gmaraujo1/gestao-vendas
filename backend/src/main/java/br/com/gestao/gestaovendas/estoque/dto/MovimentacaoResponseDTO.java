@@ -10,6 +10,8 @@ import java.time.LocalDateTime;
 public record MovimentacaoResponseDTO(
         Long id,
         Long produtoId,
+        /* Para a tela não precisar cruzar o id com a lista de produtos. */
+        String produtoDescricao,
         TipoMovimentacao tipo,
         BigDecimal quantidade,
         BigDecimal custoUnitario,
@@ -21,8 +23,8 @@ public record MovimentacaoResponseDTO(
         Long usuarioId
 ) {
 
-    public static MovimentacaoResponseDTO de(MovimentacaoEstoque m) {
-        return new MovimentacaoResponseDTO(m.getId(), m.getProdutoId(), m.getTipo(), m.getQuantidade(),
+    public static MovimentacaoResponseDTO de(MovimentacaoEstoque m, String produtoDescricao) {
+        return new MovimentacaoResponseDTO(m.getId(), m.getProdutoId(), produtoDescricao, m.getTipo(), m.getQuantidade(),
                 m.getCustoUnitario(), m.getDataHora(), m.getMotivoPerda(), m.getObservacao(),
                 m.getVendaId(), m.getTrocaId(), m.getUsuarioId());
     }

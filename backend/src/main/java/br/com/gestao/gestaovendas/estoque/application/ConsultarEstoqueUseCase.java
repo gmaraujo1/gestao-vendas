@@ -42,6 +42,6 @@ public class ConsultarEstoqueUseCase {
                 Paginas.validar(pageable, ORDENACAO_EXTRATO));
         return new ExtratoProdutoDTO(produto.getId(), produto.getDescricao(),
                 repository.saldo(negocioId, produtoId),
-                PaginaDTO.de(movimentacoes, MovimentacaoResponseDTO::de));
+                PaginaDTO.de(movimentacoes, m -> MovimentacaoResponseDTO.de(m, produto.getDescricao())));
     }
 }

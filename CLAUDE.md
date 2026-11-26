@@ -10,7 +10,7 @@ Usuários: os pais (ADMIN) e um funcionário (FUNCIONARIO). Clientes **não** ac
 
 ```
 backend/    Java 21, Spring Boot 3.5, Spring Data JPA, PostgreSQL, MapStruct, Lombok (Maven)
-frontend/   Vite 8 + React 19 + TS 5.9 + Tailwind 4 + shadcn/ui + TanStack Query/Table + RHF/Zod + Recharts + React Router (base pronta, telas a fazer; ver frontend/README.md)
+frontend/   Vite 8 + React 19 + TS 5.9 + Tailwind 4 + shadcn/ui + TanStack Query/Table + Zustand + RHF/Zod + Recharts + React Router (todas as telas prontas, menos compras; ver frontend/README.md)
 mobile/     React Native, só depois que o frontend e o backend estiverem prontos
 .claude/    skills do ECC (sem as de outras stacks/domínios) e agents revisores (java, database, security, react, typescript)
 ```
@@ -58,6 +58,7 @@ Nesta máquina o JDK 21 do sistema não tem `javac`. Use
 - Exceções ao isolamento: `veiculo` é global (os dois negócios usam os mesmos veículos; a despesa é que escolhe o negócio). Usuário, auth e negócio também não usam `NegocioAtual`.
 - Convenções de API: REST sem verbo na URL (`POST /api/x`, `GET /api/x`, `PATCH /api/x/{id}`, `DELETE /api/x/{id}`). O PATCH é parcial (campos nulos não mudam). Listagens grandes são paginadas com `Pageable` e devolvem `PaginaDTO`. Cadastros desativáveis têm o campo `ativo`. Entidades novas estendem `EntidadeAuditavel` (datas automáticas). Busca com `like` usa `Like.escapar`. Os endpoints antigos de `/api/usuario` ainda usam verbos (`/criar`, `/listar`).
 - OpenAPI (springdoc): `/v3/api-docs` e `/swagger-ui.html`, **desligados por padrão** (`SPRINGDOC_ENABLED=true` para ligar; ligado no perfil de teste). Endpoints com `NegocioAtual` ganham o header `X-Negocio-Id` no schema. Pageable leva `@ParameterObject`.
+- Frontend: mobile-first (os pais usam no celular; o dono administra pelo PC). Estado do servidor no TanStack Query (o `negocioId` sempre na queryKey), estado do cliente no Zustand, listas com `TabelaDados` (TanStack Table: tabela no PC, cartões no celular). Cores só por tokens (mudam com o negócio e o tema). Sempre versões estáveis das bibliotecas.
 - PDF gerado no backend (OpenPDF, pacote `org.openpdf`), para que o mobile reaproveite.
 - Relatórios (`relatorio/`): SQL nativo só leitura em `RelatorioRepository`, agregado por dia e somado em Java (o total é sempre a soma dos pontos). Períodos com `TipoPeriodo`/`IntervaloRelatorio` (`?periodo=MES&data=` ou `?de=&ate=`). `/api/relatorio/**` e `/api/dashboard/**` são só do ADMIN.
 - Testcontainers para testes de integração com Postgres: anotar a classe com `@IntegrationTest` e nomeá-la `*IntegrationTest` (o surefire só roda `*Test`). Requer Docker. O `testcontainers.version` está fixado em 1.21.4 por causa do Docker 29. Os testes compartilham o banco e a ordem das classes muda entre máquinas: não dependa de dados de outra classe e não use `deleteAll()` em tabelas com histórico (use `LimpezaBanco`). Para conferir, rode `./mvnw test -Dsurefire.runOrder=random`.
@@ -77,7 +78,7 @@ Nesta máquina o JDK 21 do sistema não tem `javac`. Use
 
 O roadmap detalhado, com status, checklist de cada etapa e decisões em aberto, está em **`docs/ROADMAP.md`**. Leia esse arquivo ao retomar o trabalho e atualize-o ao concluir cada etapa.
 
-Resumo: 1. Base ✅ → 2. Cadastros ✅ → 3. Estoque e vendas ✅ → 4. Despesas ✅ → 5. Compras → 6. Relatórios PDF e dashboard ✅ → 7. Pronto para produção (= MVP do backend) → 8. Frontend (base pronta) → 9. WhatsApp, mobile e Pão Nino.
+Resumo: 1. Base ✅ → 2. Cadastros ✅ → 3. Estoque e vendas ✅ → 4. Despesas ✅ → 5. Compras → 6. Relatórios PDF e dashboard ✅ → 7. Pronto para produção (= MVP do backend) → 8. Frontend ✅ → 9. WhatsApp, mobile e Pão Nino.
 
 Cada etapa sai em uma branch e um PR, com testes. Revisar com o agent `java-reviewer` (ou `react-reviewer`/`typescript-reviewer` no front) antes do PR.
 

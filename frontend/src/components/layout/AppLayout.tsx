@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { NavLink, Outlet, useLocation, useMatches } from 'react-router'
+import { NavLink, Outlet, useLocation, useMatches, useNavigation } from 'react-router'
 import { LogoNegocio } from '@/components/marca/LogoNegocio'
 import { MenuUsuario } from '@/components/layout/MenuUsuario'
 import { BARRA_INFERIOR, GRUPOS_MENU, NOVA_VENDA, visiveis } from '@/components/layout/navegacao'
@@ -8,7 +8,11 @@ import { useSessao } from '@/hooks/use-sessao'
 import { cn } from '@/lib/utils'
 
 /** Título de cada rota (handle no router.tsx): vai para a aba do navegador e o leitor de tela. */
-export type HandleRota = { titulo?: string }
+export type HandleRota = {
+  titulo?: string
+  /** Telas de lançamento (venda, troca): a barra de ação delas fica no lugar da barra inferior. */
+  semBarra?: boolean
+}
 
 /**
  * Casca do app depois de escolher o negócio. No celular: cabeçalho fino e barra inferior com
@@ -18,9 +22,18 @@ export function AppLayout() {
   const { marca, negocio } = useNegocioAtual()
   const { ehAdmin } = useSessao()
   const principal = useTituloEFoco(marca?.nomeCurto ?? negocio?.nome)
+  const semBarra = useMatches().some((m) => (m.handle as HandleRota | undefined)?.semBarra)
+  const carregando = useNavigation().state === 'loading'
 
   return (
     <div className="min-h-svh md:grid md:grid-cols-[16rem_1fr]">
+      <div
+        aria-hidden="true"
+        className={cn(
+          'faixa-marca fixed inset-x-0 top-0 z-50 h-0.5 origin-left transition-[transform,opacity] duration-500',
+          carregando ? 'scale-x-75 opacity-100' : 'scale-x-100 opacity-0',
+        )}
+      />
       <a
         href="#conteudo"
         className="sr-only z-50 rounded-lg bg-primary px-4 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
@@ -75,7 +88,7 @@ export function AppLayout() {
       <div className="flex min-w-0 flex-col">
         <header className="pt-seguro sticky top-0 z-30 border-b bg-background/85 backdrop-blur-lg">
           <div className="faixa-marca h-1 md:hidden" />
-          <div className="mx-auto flex h-16 max-w-3xl items-center gap-3 px-4">
+          <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-4 md:px-8">
             <div className="flex min-w-0 flex-1 items-center gap-3 md:hidden">
               <LogoNegocio marca={marca} tamanho="sm" />
               <span className="truncate font-semibold">{marca?.nomeCurto ?? negocio?.nome}</span>
@@ -89,13 +102,13 @@ export function AppLayout() {
           id="conteudo"
           ref={principal}
           tabIndex={-1}
-          className="mx-auto w-full max-w-3xl flex-1 px-4 pt-5 pb-32 outline-none md:pb-10"
+          className={cn('mx-auto w-full max-w-5xl flex-1 px-4 pt-5 outline-none md:px-8 md:pb-10', semBarra ? 'pb-6' : 'pb-32')}
         >
           <Outlet />
         </main>
       </div>
 
-      <BarraInferior />
+      {!semBarra && <BarraInferior />}
     </div>
   )
 }

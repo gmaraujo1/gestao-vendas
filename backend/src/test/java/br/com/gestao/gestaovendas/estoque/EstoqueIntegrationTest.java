@@ -59,7 +59,8 @@ class EstoqueIntegrationTest extends ApiIntegrationTest {
         String hoje = LocalDate.now().toString();
         mockMvc.perform(noNegocio(get("/api/perda").param("de", hoje).param("ate", hoje), func, laticinio()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.conteudo[?(@.produtoId == %d)].motivoPerda".formatted(produto)).value("FURADO"));
+                .andExpect(jsonPath("$.conteudo[?(@.produtoId == %d)].motivoPerda".formatted(produto)).value("FURADO"))
+                .andExpect(jsonPath("$.conteudo[?(@.produtoId == %d)].produtoDescricao".formatted(produto)).exists());
 
         String amanha = LocalDate.now().plusDays(1).toString();
         mockMvc.perform(noNegocio(get("/api/perda").param("de", amanha).param("ate", amanha), func, laticinio()))

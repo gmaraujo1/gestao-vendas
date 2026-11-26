@@ -26,3 +26,10 @@ export function paraApiError(status: number, corpo: unknown): ApiError {
       : (MENSAGENS_PADRAO[status] ?? 'Erro inesperado. Tente de novo.')
   return new ApiError(status, mensagem)
 }
+
+/** Texto para mostrar ao usuário (toast, estado de erro) a partir de qualquer erro. */
+export function mensagemDeErro(erro: unknown): string {
+  if (erro instanceof ApiError) return erro.message
+  if (erro instanceof TypeError) return 'Sem conexão com o servidor. Confira a internet e tente de novo.'
+  return 'Algo deu errado. Tente de novo.'
+}

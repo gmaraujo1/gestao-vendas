@@ -66,17 +66,20 @@ public class RegistrarTrocaUseCase {
         for (var d : request.devolvidos()) {
             Produto produto = devolvidos.get(d.produtoId());
             movs.add(MovimentacaoResponseDTO.de(movimentacaoService.registrar(
-                    Movimento.trocaEntrada(produto, d.quantidade(), dataHora, troca.getId(), usuarioId))));
+                    Movimento.trocaEntrada(produto, d.quantidade(), dataHora, troca.getId(), usuarioId)),
+                    produto.getDescricao()));
             if (d.destino() == DestinoDevolucao.PERDA) {
                 movs.add(MovimentacaoResponseDTO.de(movimentacaoService.registrar(Movimento.perda(produto,
-                        d.quantidade(), dataHora, d.motivoPerda(), "Devolvido na troca", troca.getId(), usuarioId))));
+                        d.quantidade(), dataHora, d.motivoPerda(), "Devolvido na troca", troca.getId(), usuarioId)),
+                        produto.getDescricao()));
                 eventos.publishEvent(new PerdaRegistrada(negocioId, produto.getId(), d.quantidade(),
                         d.motivoPerda(), usuarioId));
             }
         }
         for (var e : entregues) {
+            Produto produto = paraEntregar.get(e.produtoId());
             movs.add(MovimentacaoResponseDTO.de(movimentacaoService.registrar(Movimento.trocaSaida(
-                    paraEntregar.get(e.produtoId()), e.quantidade(), dataHora, troca.getId(), usuarioId))));
+                    produto, e.quantidade(), dataHora, troca.getId(), usuarioId)), produto.getDescricao()));
         }
         eventos.publishEvent(new TrocaRegistrada(negocioId, troca.getId(), cliente.getId(), usuarioId));
         return TrocaResponseDTO.de(troca, movs);

@@ -5,7 +5,7 @@ Documento para retomar o trabalho em qualquer máquina. O `CLAUDE.md`, na raiz, 
 > **Para retomar com o Claude Code em outro PC:** clone o repositório, abra o Claude Code na raiz e diga
 > "leia o docs/ROADMAP.md e vamos continuar a próxima etapa". O `CLAUDE.md` é carregado automaticamente.
 
-Última atualização: 26/11/2026 (etapa 6: relatórios PDF e API do dashboard).
+Última atualização: 26/11/2026 (etapa 8.1: identidade visual, login, escolha do negócio e layout).
 
 ---
 
@@ -18,10 +18,10 @@ Documento para retomar o trabalho em qualquer máquina. O `CLAUDE.md`, na raiz, 
 | 3 | Estoque e vendas: movimentações, venda, perda, troca, ajuste | ✅ Concluída (PR #11) | — |
 | 4 | Despesas | ✅ Concluída (PR #11) | — |
 | 5 | Compras (custo médio) | ⏳ Próxima no backend; perguntas enviadas à mãe | `feat/compras` |
-| 6 | Relatórios PDF e API do dashboard | ✅ Concluída (aguardando PR) | `feat/relatorios` |
+| 6 | Relatórios PDF e API do dashboard | ✅ Concluída (PR #12) | — |
 | 7 | Pronto para produção | ⬜ | `chore/producao` |
 | | **→ MVP do backend concluído** | | |
-| 8 | Frontend (Vite + React) | ⏳ Base configurada; telas a fazer | `feat/frontend-*` |
+| 8 | Frontend (Vite + React) | ⏳ 8.1 feita (acesso e layout); faltam 8.2 a 8.5 | `feat/frontend-*` |
 | 9 | Depois do MVP: WhatsApp, app mobile, módulo Pão Nino | ⬜ | — |
 
 Regra de todas as etapas: uma branch e um PR por etapa, com testes (unitários e de integração com Testcontainers). Antes do PR, revisar com os agents `java-reviewer` e, se a etapa mexer em segurança, `security-reviewer`. Todo dado de negócio tem `negocio_id`, e todo endpoint de dados recebe `NegocioAtual`.
@@ -153,7 +153,7 @@ Migration `V4__estoque_vendas_despesas.sql`.
 
 ---
 
-## ✅ Etapa 6: relatórios PDF e API do dashboard (concluída)
+## ✅ Etapa 6: relatórios PDF e API do dashboard (concluída, PR #12)
 
 Sem migration nova: tudo sai do que as etapas 3 e 4 já gravam. Módulo `relatorio/`.
 
@@ -203,7 +203,7 @@ Itens de segurança e operação que estão pendentes desde a etapa 1. Devem fic
 
 ---
 
-## ⏳ Etapa 8: frontend (base configurada)
+## ⏳ Etapa 8: frontend (8.1 feita)
 
 **Pronto** (veja `frontend/README.md`):
 - Vite 8 + React 19 + TypeScript 5.9 + Tailwind 4 + shadcn/ui (preset Nova);
@@ -212,15 +212,25 @@ Itens de segurança e operação que estão pendentes desde a etapa 1. Devem fic
 - sessão, formatadores pt-BR, proxy `/api` para o backend em dev;
 - job de lint e build no CI.
 
-**A fazer (telas):**
-- [ ] Login e escolha do negócio (`GET /api/negocio/meus`).
-- [ ] Layout com menu, escondendo o que o FUNCIONARIO não pode fazer.
-- [ ] Cadastros: produtos, categorias, clientes, veículos (e usuários, para o ADMIN).
-- [ ] Venda rápida (busca de cliente e produto, itens, total), lista de vendas e cancelamento.
-- [ ] Estoque (saldos e extrato), ajuste, perda e troca.
-- [ ] Despesas e resumo.
-- [ ] Dashboard (`/api/dashboard/*`) e download do PDF (`/api/relatorio/lucro/pdf`).
-- [ ] Depois: compras.
+**Identidade visual (decidida em 26/11/2026):**
+- uso **quase só no celular**: mobile-first, alvos de toque de 40 a 48 px, barra inferior com a "Nova venda" no meio; menu lateral a partir de 768 px;
+- tema claro, escuro ou automático (`gv.tema`), aplicado antes da primeira pintura por um script no `index.html`;
+- **a cor muda com o negócio** (`data-negocio` no `<html>`, tokens no `src/index.css`):
+  - Laticínio (marca Bomtlê): fundo branco, azul-marinho da logo, e os dois arcos do coração (vermelho e azul-céu) numa faixa fina no topo;
+  - Pão Nino (ainda sem logo): trigo, casca tostada e marrom, com um selo de trigo;
+  - login e escolha do negócio usam uma identidade neutra (grafite).
+
+**Partes da etapa 8 (um PR cada):**
+- [x] **8.1 Base e acesso** (`feat/frontend-base-acesso`): login, escolha do negócio (entra direto se houver um só), layout (cabeçalho, barra inferior, menu lateral, tela "Mais"), menu da conta (aparência, trocar negócio, sair), início com atalhos e, para o ADMIN, as vendas de hoje e o resultado do mês. As telas ainda não feitas mostram "em construção"; as do ADMIN mostram "só para administradores" ao FUNCIONARIO.
+- [ ] **8.2 Cadastros**: produtos, categorias, clientes, veículos e usuários (ADMIN).
+- [ ] **8.3 Operação**: venda rápida, lista e detalhe de vendas, cancelamento, troca e perda.
+- [ ] **8.4 Estoque e despesas**: saldos, extrato, "informar estoque", despesas e resumo.
+- [ ] **8.5 Dashboard e relatórios**: cards, gráficos (`/api/dashboard/*`), seletor de período e download do PDF.
+- [ ] Depois da etapa 5: compras.
+
+**Pendências do front:**
+- o bundle passou de 500 kB: carregar as rotas com `lazy` quando entrarem as telas pesadas (gráficos na 8.5);
+- PWA (instalar na tela inicial do celular) com manifest e ícones: avaliar na 8.5 ou na etapa 7.
 
 ## Etapa 9: depois do MVP
 

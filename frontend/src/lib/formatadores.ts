@@ -38,3 +38,11 @@ export function hojeIso() {
 export function agoraIso() {
   return new Date().toLocaleString('sv-SE', { timeZone: FUSO }).replace(' ', 'T')
 }
+
+/** "Bom dia", "Boa tarde" ou "Boa noite" pelo horário de Brasília. */
+export function saudacao() {
+  const hora = Number(new Date().toLocaleString('pt-BR', { hour: 'numeric', hour12: false, timeZone: FUSO }))
+  if (hora < 12) return 'Bom dia'
+  if (hora < 18) return 'Boa tarde'
+  return 'Boa noite'
+}

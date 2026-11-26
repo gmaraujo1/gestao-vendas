@@ -1,48 +1,67 @@
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import type { components } from '@/lib/api/schema'
+import { armazenamento } from '@/lib/armazenamento'
+import type { Marca } from '@/lib/marca'
 
 /**
- * Sessão do usuário no navegador: token JWT, dados do login e o negócio escolhido
- * (Laticínio ou Pão Nino). O cliente da API lê daqui para montar os headers.
+ * Sessão no navegador (Zustand, salva em localStorage na chave gv.sessao): token, usuário,
+ * negócio escolhido e a cor dele. O cliente da API lê daqui para montar os headers e o
+ * script do index.html lê a cor antes da primeira pintura.
  *
- * Funções puras sobre o localStorage. Para sair ou trocar de negócio pela interface use
- * `sair()`/`trocarNegocio()` de `@/lib/sessao-acoes`, que também limpam o cache das telas.
+ * Os efeitos colaterais (limpar o cache das telas, pintar o <html>) ficam em
+ * lib/sessao-efeitos.ts, que observa este store: valem para qualquer origem da mudança
+ * (botão, 401, outra aba).
+ *
+ * A validade do token é decidida pelo servidor (401), não pelo relógio do celular, que pode
+ * estar errado.
  */
 export type Login = components['schemas']['LoginResponseDTO']
 
-const CHAVE_LOGIN = 'gv.login'
-const CHAVE_NEGOCIO = 'gv.negocioId'
+export const CHAVE_SESSAO = 'gv.sessao'
 
-export function lerLogin(): Login | null {
-  const bruto = localStorage.getItem(CHAVE_LOGIN)
-  if (!bruto) return null
-  try {
-    const login = JSON.parse(bruto) as Login
-    const expiraEm = typeof login.expiraEm === 'string' ? new Date(login.expiraEm).getTime() : NaN
-    if (typeof login.token !== 'string' || Number.isNaN(expiraEm) || expiraEm <= Date.now()) {
-      encerrarSessao()
-      return null
-    }
-    return login
-  } catch {
-    encerrarSessao()
-    return null
-  }
+type EstadoSessao = {
+  login: Login | null
+  negocioId: number | null
+  marca: Marca['slug'] | null
+  /** Para onde voltar depois de entrar de novo (só quando a sessão expirou sozinha). */
+  voltarPara: string | null
+  entrar: (login: Login) => void
+  escolherNegocio: (negocioId: number, marca: Marca['slug'] | null) => void
+  definirMarca: (marca: Marca['slug'] | null) => void
+  sairDoNegocio: () => void
+  sair: () => void
+  expirar: (voltarPara: string) => void
+  consumirVoltarPara: () => string | null
 }
 
-export function salvarLogin(login: Login) {
-  localStorage.setItem(CHAVE_LOGIN, JSON.stringify(login))
-}
+export const useSessaoStore = create<EstadoSessao>()(
+  persist(
+    (set, get) => ({
+      login: null,
+      negocioId: null,
+      marca: null,
+      voltarPara: null,
+      entrar: (login) => set({ login, negocioId: null, marca: null }),
+      escolherNegocio: (negocioId, marca) => set({ negocioId, marca }),
+      definirMarca: (marca) => set({ marca }),
+      sairDoNegocio: () => set({ negocioId: null, marca: null }),
+      sair: () => set({ login: null, negocioId: null, marca: null, voltarPara: null }),
+      expirar: (voltarPara) => set({ login: null, negocioId: null, marca: null, voltarPara }),
+      consumirVoltarPara: () => {
+        const destino = get().voltarPara
+        if (destino) set({ voltarPara: null })
+        return destino
+      },
+    }),
+    {
+      name: CHAVE_SESSAO,
+      storage: armazenamento,
+      partialize: ({ login, negocioId, marca, voltarPara }) => ({ login, negocioId, marca, voltarPara }),
+    },
+  ),
+)
 
-export function lerNegocioId(): number | null {
-  const valor = Number(localStorage.getItem(CHAVE_NEGOCIO))
-  return Number.isInteger(valor) && valor > 0 ? valor : null
-}
-
-export function escolherNegocio(negocioId: number) {
-  localStorage.setItem(CHAVE_NEGOCIO, String(negocioId))
-}
-
-export function encerrarSessao() {
-  localStorage.removeItem(CHAVE_LOGIN)
-  localStorage.removeItem(CHAVE_NEGOCIO)
-}
+/** Leitura fora do React (cliente da API). */
+export const tokenAtual = () => useSessaoStore.getState().login?.token ?? null
+export const negocioAtualId = () => useSessaoStore.getState().negocioId

@@ -1,5 +1,6 @@
 package br.com.gestao.gestaovendas.venda.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotEmpty;
@@ -27,6 +28,7 @@ public record VendaRequestDTO(
         LocalDateTime dataHora
 ) {
 
+    @Schema(name = "VendaItemRequestDTO")
     public record Item(
             @NotNull(message = "Produto é obrigatório")
             Long produtoId,

@@ -1,9 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import {
   ArrowLeftRight,
+  BarChart3,
   ChevronRight,
   Package,
   PackageX,
+  Receipt,
   RefreshCw,
   ShoppingBasket,
   TrendingDown,
@@ -65,14 +67,16 @@ export function Inicio() {
         </Link>
 
         <div className="grid grid-cols-3 gap-3">
-          <Atalho to="/trocas" icone={ArrowLeftRight} rotulo="Troca" />
-          <Atalho to="/perdas" icone={PackageX} rotulo="Perda" />
-          <Atalho to="/despesas" icone={Wallet} rotulo="Despesa" />
+          <Atalho to="/trocas/nova" icone={ArrowLeftRight} rotulo="Troca" />
+          <Atalho to="/perdas?nova=1" icone={PackageX} rotulo="Perda" />
+          <Atalho to="/despesas?nova=1" icone={Wallet} rotulo="Despesa" />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <Atalho to="/clientes" icone={Users} rotulo="Clientes" horizontal />
           <Atalho to="/estoque" icone={Package} rotulo="Estoque" horizontal />
+          {ehAdmin && <Atalho to="/relatorios" icone={BarChart3} rotulo="Relatórios" horizontal />}
+          <Atalho to="/vendas" icone={Receipt} rotulo="Vendas" horizontal />
         </div>
       </section>
     </div>
@@ -94,7 +98,7 @@ function Atalho({
     <Link
       to={to}
       className={cn(
-        'flex items-center gap-3 rounded-2xl border bg-card p-4 font-medium shadow-xs transition-all outline-none hover:border-primary/30 focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.97]',
+        'flex items-center gap-3 rounded-2xl border bg-card p-4 font-medium shadow-xs transition-[background-color,border-color,color,box-shadow,transform,opacity] outline-none hover:border-primary/30 focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-[0.97]',
         horizontal ? 'h-16' : 'h-24 flex-col justify-center gap-2 text-sm',
       )}
     >

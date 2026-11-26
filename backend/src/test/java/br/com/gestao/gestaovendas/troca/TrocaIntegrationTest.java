@@ -49,7 +49,8 @@ class TrocaIntegrationTest extends ApiIntegrationTest {
         Long troca = id(body);
         mockMvc.perform(noNegocio(get("/api/troca/" + troca), func, laticinio()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.movimentacoes.length()").value(4));
+                .andExpect(jsonPath("$.movimentacoes.length()").value(4))
+                .andExpect(jsonPath("$.movimentacoes[0].produtoDescricao").isNotEmpty());
         mockMvc.perform(noNegocio(get("/api/perda"), func, laticinio()))
                 .andExpect(jsonPath("$.conteudo[?(@.trocaId == %d)].motivoPerda".formatted(troca)).value("VENCIDO"));
     }

@@ -37,6 +37,6 @@ public class RegistrarPerdaUseCase {
                 Textos.limpar(request.observacao()), null, usuarioId));
         eventos.publishEvent(new PerdaRegistrada(negocioId, produto.getId(), request.quantidade(),
                 request.motivo(), usuarioId));
-        return MovimentacaoResponseDTO.de(mov);
+        return MovimentacaoResponseDTO.de(mov, produto.getDescricao());
     }
 }

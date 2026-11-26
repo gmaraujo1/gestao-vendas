@@ -2,9 +2,9 @@ import { RefreshCw } from 'lucide-react'
 import { useEffect } from 'react'
 import { Navigate, Outlet } from 'react-router'
 import { EstadoVazio } from '@/components/estados/EstadoVazio'
+import { CarregandoTela } from '@/components/estados/CarregandoTela'
 import { SemPermissao } from '@/components/estados/SemPermissao'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
 import { useNegocioAtual } from '@/hooks/use-negocios'
 import { useSessao } from '@/hooks/use-sessao'
 import { marcaDe } from '@/lib/marca'
@@ -37,7 +37,7 @@ export function ExigeNegocio() {
   }, [semAcesso, negocio, slugCerto])
 
   if (negocioId == null || semAcesso) return <Navigate to="/negocio" replace />
-  if (isPending) return <CarregandoApp />
+  if (isPending) return <CarregandoTela />
   if (isError) {
     return (
       <main className="grid min-h-svh place-items-center">
@@ -61,15 +61,4 @@ export function ExigeNegocio() {
 export function ExigeAdmin() {
   const { ehAdmin } = useSessao()
   return ehAdmin ? <Outlet /> : <SemPermissao />
-}
-
-function CarregandoApp() {
-  return (
-    <div role="status" aria-busy="true" className="mx-auto max-w-3xl space-y-4 px-4 pt-6">
-      <span className="sr-only">Carregando…</span>
-      <Skeleton className="h-10 w-48" />
-      <Skeleton className="h-44 rounded-3xl" />
-      <Skeleton className="h-24 rounded-3xl" />
-    </div>
-  )
 }

@@ -504,7 +504,7 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        Item: {
+        VendaItemRequestDTO: {
             /** Format: int64 */
             produtoId: number;
             quantidade: number;
@@ -513,10 +513,20 @@ export interface components {
         VendaRequestDTO: {
             /** Format: int64 */
             clienteId: number;
-            itens: components["schemas"]["Item"][];
+            itens: components["schemas"]["VendaItemRequestDTO"][];
             observacao?: string;
             /** Format: date-time */
             dataHora?: string;
+        };
+        VendaItemResponseDTO: {
+            /** Format: int64 */
+            produtoId?: number;
+            /** Format: int32 */
+            produtoCodigo?: number;
+            produtoDescricao?: string;
+            quantidade?: number;
+            precoUnitario?: number;
+            subtotal?: number;
         };
         VendaResponseDTO: {
             /** Format: int64 */
@@ -535,7 +545,7 @@ export interface components {
             /** Format: date-time */
             canceladaEm?: string;
             motivoCancelamento?: string;
-            itens?: components["schemas"]["Item"][];
+            itens?: components["schemas"]["VendaItemResponseDTO"][];
         };
         CancelamentoRequestDTO: {
             motivo: string;
@@ -597,6 +607,7 @@ export interface components {
             id?: number;
             /** Format: int64 */
             produtoId?: number;
+            produtoDescricao?: string;
             /** @enum {string} */
             tipo?: "VENDA" | "VENDA_ESTORNO" | "PERDA" | "TROCA_ENTRADA" | "TROCA_SAIDA" | "AJUSTE" | "COMPRA";
             quantidade?: number;

@@ -3,6 +3,7 @@ package br.com.gestao.gestaovendas.venda.dto;
 import br.com.gestao.gestaovendas.venda.domain.StatusVenda;
 import br.com.gestao.gestaovendas.venda.domain.Venda;
 import br.com.gestao.gestaovendas.venda.domain.VendaItem;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -22,6 +23,8 @@ public record VendaResponseDTO(
         List<Item> itens
 ) {
 
+    /** Nome próprio no OpenAPI: sem ele, colide com VendaRequestDTO.Item e some dos tipos do front. */
+    @Schema(name = "VendaItemResponseDTO")
     public record Item(Long produtoId, Integer produtoCodigo, String produtoDescricao,
                        BigDecimal quantidade, BigDecimal precoUnitario, BigDecimal subtotal) {
 
